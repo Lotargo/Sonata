@@ -32,9 +32,7 @@ Mini MVP должен выйти за пределы PoC и доказать р�
 - процедурный instruction RAG;
 - автоматическое создание новых инструкций;
 - собственный пользовательский интерфейс;
-- обязательная интеграция Tensor Machine, Nexus API Balancer или Sentio Engine;
-- AutoGen;
-- LangGraph.
+- обязательная интеграция Tensor Machine, Nexus API Balancer или Sentio Engine.
 
 ## 2. Архитектурный принцип
 
