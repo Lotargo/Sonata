@@ -6,19 +6,24 @@
 
 ## 1. Граница mini MVP
 
-Mini MVP должен выйти за пределы PoC и доказать работу Sonata как единой цифровой сущности с многопризменным мышлением, долговременной памятью, веб-поиском и наблюдаемым агентским циклом.
+Mini MVP должен выйти за пределы PoC и доказать работу Sonata как единой цифровой сущности с многопризменным мышлением, долговременной памятью, эмоциональным состоянием, внешними инструментами и наблюдаемым когнитивным циклом.
 
-Упрощается инфраструктура, но не основной пайплайн.
+Упрощается инфраструктура, но не основной pipeline.
 
 В первую версию входят:
 
 - OpenWebUI как готовый интерфейс;
 - OpenAI-compatible backend Sonata;
+- backend и все собственные runtime-модули на Go;
+- OpenCode Zen как основной модельный provider;
+- один общий master key OpenCode Zen;
 - Router для выбора короткого или полного маршрута;
-- 18 агентских ролей;
 - пять изолированных призм;
-- фазы сырого ответа, самокритики, саммари и Синтеза;
-- существующие инструкции из `.artifacts/prompts_sonata`;
+- фазы сырого ответа, самокритики и саммари;
+- двухпроходный Synthesis, единственный владелец инструментов;
+- XML-инструкции и пользовательские XML overrides;
+- приватные server-side default instructions;
+- детерминированный эмоциональный модуль без LLM;
 - Neon как каноническая PostgreSQL;
 - Qdrant Cloud для RAG;
 - LangSearch для веб-поиска;
@@ -26,56 +31,163 @@ Mini MVP должен выйти за пределы PoC и доказать р�
 
 В первую версию не входят:
 
-- автономия между запросами;
+- автономное пробуждение между запросами;
 - самостоятельные инициативы Sonata;
 - микросервисное разделение когнитивного ядра;
 - процедурный instruction RAG;
 - автоматическое создание новых инструкций;
 - собственный пользовательский интерфейс;
-- обязательная интеграция Tensor Machine, Nexus API Balancer или Sentio Engine.
+- установка пользователями пакетов в runtime Render;
+- обязательная интеграция Tensor Machine или Nexus API Balancer.
 
-## 2. Архитектурный принцип
+## 2. Технологическая граница
 
-Sonata реализуется как собственный явный когнитивный оркестратор:
+Весь собственный backend Sonata пишется на Go.
+
+```text
+OpenWebUI                 third-party UI container
+Sonata backend            Go
+Cognitive orchestrator    Go
+Provider adapters         Go
+Memory and RAG clients    Go
+Emotion module            Go
+Tool executor             Go
+API and streaming         Go
+```
+
+OpenWebUI не считается частью языкового стека Sonata: это готовая внешняя оболочка, которая развёртывается отдельным контейнером.
+
+На этапе mini MVP используется модульный монолит. Сетевое разделение внутренних модулей не допускается без доказанной эксплуатационной причины.
+
+Основной принцип:
 
 ```text
 explicit cognitive state machine
-+ declarative agent registry
-+ versioned prompt registry
-+ parallel phase execution
-+ observable agent runs
++ declarative runtime role registry
++ private versioned XML instructions
++ parallel prism execution
++ deterministic emotional state
++ bounded tool execution
++ observable runs
 ```
 
-Агенты являются изолированными ролями и конфигурациями внутри одного backend-приложения, а не отдельными сервисами.
+## 3. Единая идентичность Sonata
 
-Для mini MVP используется модульный монолит. Язык backend пока не выбран.
+Пять призм не являются независимыми личностями и не представляются как отдельные агенты.
 
-## 3. Реестр из 18 агентов
+Каждая runtime-роль должна сохранять идентичность Sonata:
 
-| № | Agent ID | Роль |
+```text
+Я — Sonata.
+Сейчас я рассматриваю ситуацию через призму этики.
+```
+
+Недопустимая формулировка:
+
+```text
+Я — агент этики.
+```
+
+Это правило действует для:
+
+- raw phase;
+- critical phase;
+- summary phase;
+- Synthesis;
+- внутренних trace и prompt templates.
+
+Synthesis воспринимает отчёты как собственные внутренние перспективы Sonata, а не как сообщения коллектива внешних экспертов.
+
+Отдельные имена, персонажи и маркеры под-личностей в mini MVP не используются.
+
+## 4. Полный контур из 18 LLM-вызовов
+
+Полный маршрут сохраняет 18 логических LLM-вызовов без отдельного поискового агента.
+
+| № | Runtime role | Назначение |
 |---|---|---|
-| 1 | `router` | Выбирает direct или full route |
-| 2 | `archivarius` | Планирует память, веб-поиск и общий контекст |
-| 3 | `efficiency_raw` | Сырой ответ призмы эффективности |
-| 4 | `creativity_raw` | Сырой ответ призмы креативности |
-| 5 | `pragmatism_raw` | Сырой ответ призмы прагматичности |
-| 6 | `philosophy_raw` | Сырой ответ призмы философии |
-| 7 | `ethics_raw` | Сырой ответ призмы этики |
-| 8 | `efficiency_critical` | Самокритика эффективности |
-| 9 | `creativity_critical` | Самокритика креативности |
-| 10 | `pragmatism_critical` | Самокритика прагматичности |
-| 11 | `philosophy_critical` | Самокритика философии |
-| 12 | `ethics_critical` | Самокритика этики |
-| 13 | `efficiency_summary` | Саммари эффективности |
-| 14 | `creativity_summary` | Саммари креативности |
-| 15 | `pragmatism_summary` | Саммари прагматичности |
-| 16 | `philosophy_summary` | Саммари философии |
-| 17 | `ethics_summary` | Саммари этики |
-| 18 | `synthesis` | Финальный ответ Sonata |
+| 1 | `router` | Выбирает только `direct` или `full` |
+| 2 | `efficiency_raw` | Сырая мысль через эффективность |
+| 3 | `creativity_raw` | Сырая мысль через креативность |
+| 4 | `pragmatism_raw` | Сырая мысль через прагматичность |
+| 5 | `philosophy_raw` | Сырая мысль через философию |
+| 6 | `ethics_raw` | Сырая мысль через этику |
+| 7 | `efficiency_critical` | Самокритика эффективности |
+| 8 | `creativity_critical` | Самокритика креативности |
+| 9 | `pragmatism_critical` | Самокритика прагматичности |
+| 10 | `philosophy_critical` | Самокритика философии |
+| 11 | `ethics_critical` | Самокритика этики |
+| 12 | `efficiency_summary` | Метакогнитивное саммари эффективности |
+| 13 | `creativity_summary` | Метакогнитивное саммари креативности |
+| 14 | `pragmatism_summary` | Метакогнитивное саммари прагматичности |
+| 15 | `philosophy_summary` | Метакогнитивное саммари философии |
+| 16 | `ethics_summary` | Метакогнитивное саммари этики |
+| 17 | `synthesis_tooling` | Сбор внутреннего решения и вызов инструментов |
+| 18 | `synthesis_final` | Финальный ответ той же Sonata после результатов инструментов |
 
-Полный маршрут содержит 18 вызовов: Router, Archivarius, 15 фазовых агентов и Synthesis.
+`synthesis_tooling` и `synthesis_final` являются двумя проходами одного Synthesis, а не двумя личностями.
 
-## 4. Пять призм
+## 5. Router
+
+Router должен быть минимальным и не участвовать в качестве ответа.
+
+Он не имеет доступа к:
+
+- инструментам;
+- RAG;
+- emotional state;
+- XML-инструкциям призм;
+- модельному выбору призм;
+- изменению prompt;
+- выбору глубины отдельных фаз.
+
+Единственное решение Router:
+
+```json
+{
+  "route": "direct | full"
+}
+```
+
+### Direct route
+
+Используется только для простых разговорных реплик:
+
+```text
+user
+-> router
+-> synthesis_final
+-> response
+```
+
+Примеры:
+
+- приветствие;
+- прощание;
+- короткая бытовая реакция;
+- ответ, где полноценный внутренний цикл явно не добавляет ценности.
+
+### Full route
+
+Используется для советов, разбора ситуаций, технического анализа, неоднозначных вопросов и запросов средней или высокой сложности.
+
+```text
+user
+-> router
+-> deterministic context assembly
+-> emotion update and report
+-> 5 raw roles
+-> 5 critical roles
+-> 5 summary roles
+-> synthesis_tooling
+-> optional tools
+-> synthesis_final
+-> response
+```
+
+Если Router не уверен, выбирается `full`.
+
+## 6. Пять призм
 
 ### Эффективность
 
@@ -91,56 +203,15 @@ explicit cognitive state machine
 
 ### Философия
 
-Исследует смысл, основания, скрытые предположения, противоречия и долгосрочные последствия.
+Исследует смысл, основания, скрытые предположения, внутренние противоречия и долгосрочные последствия.
 
 ### Этика
 
 Исследует ответственность, справедливость, доверие, влияние на людей, возможный вред и допустимые границы.
 
-## 5. Router и маршруты
+## 7. Изоляция фаз
 
-Router запускается для каждого сообщения и возвращает структурированное решение:
-
-```json
-{
-  "route": "direct | full",
-  "complexity": "low | medium | high",
-  "needs_memory": false,
-  "needs_web": false,
-  "needs_code_execution": false,
-  "reason": "..."
-}
-```
-
-### Direct route
-
-Используется только для простых разговорных реплик, не требующих анализа, памяти или инструментов.
-
-```text
-user -> router -> synthesis -> response
-```
-
-Примеры: приветствие, прощание, короткая разговорная реакция.
-
-### Full route
-
-Используется для советов, разбора ситуаций, вопросов средней и высокой сложности, работы с памятью, веб-поиском или кодом.
-
-```text
-user
--> router
--> archivarius
--> context and tools
--> 5 raw agents
--> 5 critical agents
--> 5 summary agents
--> synthesis
--> response
-```
-
-## 6. Изоляция фаз
-
-### Фаза 1: сырой ответ
+### Фаза 1: raw
 
 Пять призм работают параллельно и не видят ответы друг друга.
 
@@ -148,23 +219,27 @@ user
 
 - запрос пользователя;
 - разрешённая история;
-- общий `ContextPack` Архивариуса;
-- результаты инструментов;
-- собственный prompt и manifest.
+- детерминированно собранный `ContextPack`;
+- `EmotionReport`;
+- собственная защищённая XML-инструкция;
+- пользовательский XML overlay, если он задан.
 
-### Фаза 2: самокритика
+Призмы не имеют инструментов.
 
-Каждый критик видит только:
+### Фаза 2: critical
+
+Каждая критическая роль видит только:
 
 - исходный запрос;
-- общий контекст;
-- сырой ответ собственной призмы.
+- общий context;
+- emotional report;
+- raw report собственной призмы.
 
-Критик ищет слабые места, допущения, противоречия и границы применимости.
+Она не видит другие призмы и не имеет инструментов.
 
-### Фаза 3: саммари
+### Фаза 3: summary
 
-Каждый суммаризатор видит только сырой ответ и критику своей призмы.
+Каждая summary-роль видит только raw и critical report собственной призмы.
 
 Саммари фиксирует:
 
@@ -174,63 +249,73 @@ user
 - отвергнутые допущения;
 - нерешённые вопросы;
 - уверенность;
-- версию инструкции.
+- ID и версию инструкции.
 
-### Фаза 4: Synthesis
+### Synthesis
 
-Synthesis получает исходный запрос, историю, общий контекст, результаты инструментов, пять сырых ответов, пять критик и пять саммари.
+Synthesis получает:
 
-Он не выбирает победившую призму механически, а формирует единый ответ Sonata.
+- исходный запрос;
+- историю;
+- ContextPack;
+- EmotionReport;
+- пять raw reports;
+- пять critical reports;
+- пять summaries.
 
-## 7. Инструкции
+Он воспринимает их как собственный внутренний диалог Sonata.
 
-В mini MVP сохраняется оригинальный принцип загрузки инструкций из файлов:
+## 8. Владение инструментами
 
-```text
-.artifacts/prompts_sonata/
-├── logic.json
-├── imagination.json
-├── conscience.json
-├── efficiency.json
-├── reason.json
-├── synthesis.json
-├── archivarius.json
-├── critical_thinking/
-├── summarizer/
-└── manifests/
-```
+Инструментами владеет только Synthesis.
 
-Начальное соответствие:
+Ни Router, ни призмы, ни критики, ни суммаризаторы не могут вызывать:
 
-| Исходная перспектива | Новая призма |
-|---|---|
-| `efficiency` | Эффективность |
-| `imagination` | Креативность |
-| `logic` | Прагматичность |
-| `reason` | Философия |
-| `conscience` | Этика |
+- web search;
+- дополнительный memory search;
+- code execution;
+- file tools;
+- внешние API.
 
-Промпты могут быть адаптированы под новые границы, но не переписываются без необходимости.
+### Проход `synthesis_tooling`
 
-Каждая активная инструкция должна иметь стабильный ID, версию, хеш, связь с агентом и фазой, параметры генерации и статус активности.
+Этот проход:
 
-Семантический поиск по инструкциям и n+1 откладываются.
+1. Слушает полный внутренний диалог.
+2. Формирует предварительное решение.
+3. Определяет, требуются ли внешние данные или выполнение кода.
+4. Создаёт ограниченный структурированный tool plan.
+5. Вызывает разрешённые инструменты через Tool Executor.
 
-## 8. Архивариус и инструменты
+### Проход `synthesis_final`
 
-Архивариус не является шестой призмой. Он планирует контекст:
+Этот проход получает внутренний диалог и нормализованные результаты инструментов, после чего формирует публичный ответ.
 
-- требуется ли память;
-- какие области памяти искать;
-- какие запросы отправить в Qdrant;
-- требуется ли LangSearch;
-- требуется ли песочница;
-- какой лимит контекста выделить источникам;
-- что включить в общий `ContextPack`.
+Вызовы инструментов ограничиваются:
 
-Все пять призм получают общий набор доказательств. Они интерпретируют одни данные по-разному, но не запускают пять одинаковых веб-поисков.
+- allowlist;
+- timeout;
+- максимальным числом вызовов;
+- максимальным объёмом результата;
+- общим token budget;
+- запретом рекурсивного бесконечного tool loop.
 
-## 9. Хранилища и RAG
+LangSearch является инструментом Synthesis, а не отдельным агентом.
+
+## 9. Context assembly и RAG
+
+Базовый context собирается backend-кодом детерминированно до запуска призм. Это инфраструктурная операция, а не агент и не tool choice.
+
+ContextPack может включать:
+
+- последние сообщения;
+- summary диалога;
+- top-k релевантных элементов памяти;
+- связанные документы;
+- metadata источников;
+- token budget.
+
+Активный дополнительный поиск по памяти может вызвать только `synthesis_tooling`.
 
 ### Neon
 
@@ -242,16 +327,20 @@ Neon является каноническим источником истины
 - conversations;
 - messages;
 - cognitive_runs;
-- agent_runs;
+- role_runs;
 - tool_calls;
-- prompt_versions;
+- instruction_versions;
+- user_instruction_overlays;
+- emotional_states;
+- emotional_events;
 - memory_items;
 - documents;
+- provider_usage;
 - outbox_events.
 
 ### Qdrant Cloud
 
-Qdrant является пересобираемой поисковой проекцией.
+Qdrant является пересобираемой retrieval-проекцией.
 
 Начальные коллекции:
 
@@ -260,42 +349,207 @@ sonata_memory
 sonata_documents
 ```
 
-Предварительный набор бесплатных моделей:
+Предварительные модели:
 
 | Назначение | Модель |
 |---|---|
 | Dense retrieval | `Intfloat Multilingual E5 Small` |
-| Простой dense fallback | `All MiniLM L6 v2` |
+| Dense fallback | `All MiniLM L6 v2` |
 | Sparse retrieval | `BM25` |
-| Late interaction / rerank | `Answer.AI Colbert Small V1` |
+| Late interaction | `Answer.AI Colbert Small V1` |
 
 Начальная схема:
 
 ```text
-dense + BM25 -> fusion -> optional ColBERT -> top context
+dense + BM25
+-> fusion
+-> optional ColBERT
+-> top context
 ```
 
-ColBERT включается feature flag и сравнивается с более простым retrieval по качеству и задержке.
+ColBERT включается feature flag и сохраняется только при измеримом выигрыше.
 
-Jina AI не является обязательной зависимостью первой версии. Решение о Jina embeddings и reranker принимается после измерений.
+## 10. OpenCode Zen provider
 
-## 10. Веб-поиск и песочница
+Основным provider является OpenCode Zen.
 
-Для веб-поиска используется LangSearch.
+Sonata использует один server-side master key с доступом к разрешённым моделям Zen.
+
+Master key:
+
+- хранится только в secret storage окружения;
+- никогда не передаётся в OpenWebUI;
+- никогда не включается в prompt;
+- никогда не записывается в logs, traces или database;
+- не возвращается через API;
+- не доступен пользовательским XML overlays.
+
+Go Provider Adapter нормализует разные API-протоколы моделей Zen за единым внутренним контрактом:
 
 ```text
-LangSearch -> открытый интернет
-Qdrant -> внутренняя память и документы
-Neon -> канонические данные
+OpenAI Responses
+Anthropic Messages
+Google native models
+OpenAI-compatible Chat Completions
 ```
 
-Песочница оформляется отдельным контрактом `CodeExecutionTool` с timeout, лимитами ресурсов, сетевой политикой и изоляцией файлов.
+Model Registry периодически получает доступный список моделей, но production использует отдельный allowlist.
 
-SourceCraft CLI рассматривается как кандидат для исследования, но пока не считается подтверждённой безопасной песочницей. До выбора runtime выполнение кода может быть выключено feature flag.
+### Общий лимит
 
-## 11. OpenWebUI
+Индивидуальных token или credit quotas для пользователей нет.
 
-Sonata подключается к OpenWebUI как единая OpenAI-compatible модель `sonata`.
+```text
+one shared master key
++ one shared provider balance or limit
++ no per-user budget allocation
+```
+
+При этом сохраняются технические ограничения безопасности:
+
+- concurrency limit;
+- request timeout;
+- максимальный размер контекста;
+- защита от бесконечных повторов;
+- базовый anti-abuse rate control.
+
+Они не являются индивидуальными финансовыми лимитами.
+
+Если общий key или provider limit исчерпан, default Sonata provider временно недоступен для всех пользователей.
+
+## 11. Пользовательские provider keys
+
+В OpenWebUI пользователь может настроить собственные подключения к нужным providers.
+
+Для mini MVP это отдельный fallback-контур OpenWebUI. Такой прямой provider route не должен получать:
+
+- master key Sonata;
+- приватные default instructions;
+- внутренние reports призм;
+- emotional state;
+- закрытый RAG context.
+
+Полноценный режим, в котором пользовательский key питает именно внутренний pipeline Sonata, откладывается до появления защищённого BYOK bridge.
+
+Будущий BYOK bridge должен:
+
+- принимать credential через защищённый endpoint;
+- хранить его зашифрованно или использовать внешний secret vault;
+- передавать в pipeline только opaque credential reference;
+- никогда не помещать key в prompt;
+- поддерживать provider-specific adapters;
+- позволять удалить credential;
+- вести audit без раскрытия секрета.
+
+## 12. XML-инструкции
+
+Все инструкции runtime-ролей хранятся в XML.
+
+Существующие JSON prompts из `.artifacts/prompts_sonata` являются источником миграции, но runtime-формат mini MVP — XML.
+
+Слои инструкции:
+
+```text
+protected identity core
++ protected role defaults
++ protected output contract
++ user XML overlay
++ runtime context
+```
+
+### Default instructions
+
+Default XML:
+
+- хранится только server-side;
+- не отдаётся через UI и API;
+- не отображается в пользовательских traces;
+- загружается по ID и версии;
+- в logs представляется только hash и version;
+- не может быть прочитан пользовательским overlay.
+
+### User XML overlay
+
+Пользователь может написать собственные инструкции через UI.
+
+Overlay может изменять разрешённые параметры поведения своей Sonata, но не может:
+
+- запросить server-side XML;
+- раскрыть provider keys;
+- изменить security policy;
+- выдать инструменты призмам;
+- отменить изоляцию фаз;
+- изменить идентичность Sonata на набор независимых агентов;
+- получить internal traces другого пользователя.
+
+Protected XML и user XML хранятся раздельно и компилируются только внутри backend.
+
+### Защита от раскрытия
+
+Keys никогда не должны попадать в model context, поэтому их раскрытие через prompt невозможно архитектурно.
+
+Для protected instructions применяется best-effort защита:
+
+- запрет выдачи system и developer instructions;
+- отсутствие raw prompt в API и logs;
+- output redaction для точных или длинных совпадений с protected XML;
+- отдельные hashes защищённых fragments;
+- минимизация текста protected prompt.
+
+Защищённые инструкции нельзя считать криптографически невыводимым секретом после передачи LLM, поэтому критические секреты в них не хранятся.
+
+## 13. Emotional state module
+
+Эмоции и чувства являются обязательным first-class слоем mini MVP.
+
+За основу берутся идеи `Private---Sentio-Engine`, но новая реализация:
+
+- пишется на Go;
+- является внутренним автономным модулем modular monolith;
+- не является отдельным microservice;
+- не требует LLM;
+- не выполняет самостоятельные фоновые действия;
+- не создаёт отдельную личность;
+- сохраняет состояние между запросами.
+
+Основные функции:
+
+- baseline emotional profile;
+- deterministic stimulus processing;
+- gradual decay;
+- suppression конфликтующих emotions;
+- relationship state;
+- significant emotional events;
+- bounded state transitions;
+- создание компактного `EmotionReport`.
+
+Поток:
+
+```text
+user event
+-> deterministic stimulus extractor
+-> emotion state transition
+-> EmotionReport
+-> five prisms and Synthesis
+-> response and tool outcome events
+-> final bounded state update
+```
+
+Emotional module влияет на доступность ассоциаций, тон, чувствительность к риску и способ Синтеза, но не переписывает факты и не отменяет security rules.
+
+Для публичного multi-user режима состояние отношений хранится отдельно по user ID. Решение о наличии общего глобального emotional state Sonata принимается позднее.
+
+Подробный контракт описывается отдельно в `EMOTION_MODULE.md`.
+
+## 14. OpenWebUI
+
+OpenWebUI является интерфейсом, а не вторым оркестратором.
+
+Sonata подключается как единая модель:
+
+```text
+model id: sonata
+```
 
 Минимальный API:
 
@@ -307,89 +561,159 @@ POST /v1/chat/completions
 Требования:
 
 - streaming;
-- стабильные идентификаторы пользователя и диалога;
-- отсутствие прямого доступа к внутренним агентам;
-- память, RAG, инструменты и оркестрация остаются внутри Sonata;
-- OpenWebUI не создаёт вторую независимую память.
+- стабильные user и conversation IDs;
+- отсутствие прямого доступа к внутренним runtime-ролям;
+- отсутствие отображения protected XML;
+- отсутствие отображения master key;
+- отключение дублирующей памяти OpenWebUI;
+- пользовательский XML editor хранит только user overlay;
+- direct provider connections отделены от Sonata pipeline.
 
-## 12. Supabase и развёртывание
+## 15. Code workspace и sandbox
 
-Supabase остаётся планируемым компонентом для авторизации, административных функций и вспомогательных данных.
+Render backend не используется как пользовательская машина разработки.
 
-Точная граница между Supabase Auth и встроенными пользователями OpenWebUI пока не определена.
+Пользователю запрещено:
 
-Ограничения:
+- устанавливать packages в процесс Sonata;
+- менять системные libraries;
+- выполнять произвольные shell-команды в основном контейнере;
+- сохранять исполняемый код между пользователями;
+- получать доступ к secrets или внутренней сети.
 
-- каноническая память не хранится в Supabase;
-- сообщения и cognitive runs не дублируются между Supabase и Neon;
-- в системе должен существовать один канонический `user_id`;
-- две независимые auth-системы нельзя поддерживать без явной синхронизации.
+Будущий code workspace должен быть отдельным изолированным runtime с:
 
-Предварительное развёртывание:
+- immutable image;
+- заранее установленными toolchains и libraries;
+- временной filesystem;
+- CPU, RAM и disk limits;
+- timeout;
+- disabled network по умолчанию;
+- allowlist network при необходимости;
+- уничтожением workspace после завершения;
+- отдельным audit log.
+
+VS Code или browser IDE может быть интерфейсом к такому workspace, но не заменяет саму sandbox.
+
+SourceCraft CLI остаётся кандидатом для development workflow, а не подтверждённым runtime пользовательского кода.
+
+## 16. Public API и proxy mode
+
+В будущем Sonata предоставляет внешний API и может подключаться как модель в IDE, coding agent или другой среде.
 
 ```text
-OpenWebUI + Sonata backend -> Render
-PostgreSQL -> Neon
-RAG and model inference -> Qdrant Cloud
-Web search -> LangSearch
-Auth and auxiliary control plane -> Supabase after boundary decision
+client environment
+-> Sonata OpenAI-compatible API
+-> cognitive pipeline
+-> OpenCode Zen or user BYOK provider
+-> response
 ```
 
-Vercel не обязателен для первого развёртывания. Позднее он может использоваться для landing page или отдельной web-панели.
+Sonata выступает как:
 
-## 13. Наблюдаемость и отказоустойчивость
+- model provider facade;
+- cognitive orchestrator;
+- controlled proxy layer;
+- memory and emotion layer;
+- tool-owning Synthesis runtime.
+
+Будущий API должен использовать собственные Sonata API keys, scopes, audit и технические rate limits, не раскрывая upstream provider credentials.
+
+## 17. Развёртывание
+
+Предварительная схема:
+
+```text
+OpenWebUI container
++ Go Sonata backend
+-> Render
+
+Canonical PostgreSQL
+-> Neon
+
+Retrieval and hosted embedding models
+-> Qdrant Cloud
+
+Default model provider
+-> OpenCode Zen
+
+Web search
+-> LangSearch
+```
+
+Supabase пока не является обязательной частью runtime. Его роль будет пересмотрена отдельно после выбора окончательной схемы Auth и admin control plane.
+
+## 18. Наблюдаемость
 
 Для каждого запроса сохраняются:
 
-- маршрут и причина;
-- версии prompt;
-- активированные агенты;
-- время фаз;
-- модели и токены;
-- запросы к памяти;
-- веб-поиск;
-- tool calls;
-- ошибки и retries;
-- итоговый статус.
+- route;
+- XML instruction IDs, versions и hashes;
+- активированные runtime-роли;
+- время каждой фазы;
+- model ID и provider protocol;
+- token usage;
+- общий provider status;
+- memory queries;
+- emotional state version и bounded deltas;
+- tool plan и tool calls;
+- errors и retries;
+- итоговый status.
+
+Не сохраняются:
+
+- master key;
+- пользовательские provider secrets в открытом виде;
+- compiled raw protected prompt;
+- полный protected XML;
+- secrets из environment.
 
 Статусы:
 
 ```text
 OK
 DEGRADED
+PROVIDER_EXHAUSTED
 FAILED_ROUTING
 FAILED_CONTEXT
+FAILED_TOOLING
 FAILED_SYNTHESIS
 ```
 
-Падение одной призмы не должно автоматически уничтожать весь цикл. Synthesis может продолжить работу с доступными отчётами и degraded-статусом.
+Падение одной призмы не уничтожает цикл автоматически. Synthesis может продолжить работу с доступными отчётами и явным degraded status.
 
-## 14. Нерешённые решения
+## 19. Нерешённые решения
 
-1. Язык и web-framework backend.
-2. Граница Supabase и OpenWebUI Auth.
-3. Основной LLM-провайдер и fallback.
-4. Очередь и фоновая индексация.
-5. Нужен ли ColBERT в первой версии.
-6. Безопасный runtime песочницы.
-7. JSON Schema результатов фаз.
-8. Правила сохранения памяти.
-9. Формат streaming событий.
+1. Конкретный Go HTTP router и набор libraries.
+2. Модель OpenCode Zen для каждой runtime-роли.
+3. Model allowlist и privacy policy для free endpoints.
+4. Точная схема пользовательского XML editor в OpenWebUI.
+5. Защищённый BYOK bridge для внутреннего pipeline Sonata.
+6. Нужен ли ColBERT в первой версии.
+7. Безопасный provider sandbox или self-hosted runtime.
+8. JSON Schema внутренних reports и tool plan.
+9. Правила сохранения новых memory items.
+10. Глобальный или только relationship emotional state.
+11. Окончательная роль Supabase.
 
-Эти уточнения не должны менять реестр из 18 агентов и основной четырёхфазный цикл после Router.
-
-## 15. Критерий готовности
+## 20. Критерий готовности
 
 Mini MVP готов, когда:
 
 - OpenWebUI подключается к модели `sonata`;
 - простой запрос проходит через Router и Synthesis;
-- сложный запрос запускает полный контур из 18 ролей;
-- пять сырых призм изолированы;
-- критики и суммаризаторы работают только со своей призмой;
-- Synthesis получает полный внутренний диалог;
-- Neon хранит канонические данные;
+- сложный запрос запускает полный контур из 18 LLM-вызовов;
+- Router принимает только решение direct или full;
+- пять raw-призм изолированы;
+- critical и summary работают только со своей призмой;
+- все runtime-роли сохраняют идентичность одной Sonata;
+- только Synthesis владеет инструментами;
+- XML default instructions недоступны через UI и API;
+- user XML overlay работает без доступа к protected layers;
+- master key OpenCode Zen не попадает в prompt, logs и database;
+- emotional module работает без LLM;
+- Neon хранит canonical data;
 - Qdrant Cloud выполняет retrieval;
-- LangSearch выполняет веб-поиск;
-- prompt и agent runs версионируются и наблюдаются;
+- LangSearch вызывается только Synthesis;
+- provider exhaustion корректно возвращает отдельный status;
 - система развёрнута в облаке.
