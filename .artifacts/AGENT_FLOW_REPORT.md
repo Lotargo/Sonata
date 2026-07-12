@@ -11,7 +11,13 @@
 Актуальная архитектура mini MVP находится в:
 
 ```text
-docs/stage-01-core/plan/MINI_MVP_ARCHITECTURE.md
+docs/mini-mvp/ARCHITECTURE.md
+```
+
+Точка входа для всей документации mini MVP:
+
+```text
+docs/mini-mvp/README.md
 ```
 
 ## 2. Основной pipeline прошлой версии
@@ -185,12 +191,12 @@ Qdrant Cloud -> rebuildable retrieval projection
 1. Пять изолированных призм.
 2. Raw, Critical и Summary фазы.
 3. Отдельный Synthesis.
-4. Archivarius как планировщик контекста.
-5. Файловые prompt и manifest.
+4. Детерминированная сборка контекста и память, но не отдельный Archivarius в runtime mini MVP.
+5. Файловые инструкции и manifest как источник миграции в XML.
 6. Версионирование инструкций.
 7. Модельные алиасы.
 8. Graceful degradation.
-9. Наблюдаемость каждого agent run.
+9. Наблюдаемость каждого role run.
 10. Разделение canonical storage и retrieval index.
 
 Не переносятся автоматически:
