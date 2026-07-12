@@ -1,27 +1,34 @@
 # ADR: OpenCode Zen as default model provider
 
 > Статус: accepted for mini MVP  
-> Scope: model access, shared credentials, provider exhaustion and future BYOK
+> Scope: model access, shared credentials, routing, exhaustion and future BYOK
 
 ## 1. Decision
 
-OpenCode Zen is the default upstream model provider for Sonata mini MVP.
+OpenCode Zen является default upstream provider Sonata mini MVP.
 
-Sonata uses one server-side master key shared by all users.
+```text
+endpoint: https://opencode.ai/zen/v1/chat/completions
+protocol: OpenAI-compatible Chat Completions
+```
 
-There are no individual financial quotas or per-user token budgets in mini MVP.
+Sonata использует один server-side master key, общий для всех пользователей.
+
+Индивидуальные финансовые quotas и per-user token budgets отсутствуют.
 
 ## 2. Runtime model
 
 ```text
 OpenWebUI
 -> Sonata API
--> Go Provider Adapter
--> OpenCode Zen endpoint
+-> Go OpenCodeZenProvider
+-> OpenCode Zen chat completions endpoint
 -> selected model
 ```
 
-The Provider Adapter exposes one internal interface regardless of upstream protocol.
+Для mini MVP нужен один transport. Поддержка Anthropic, Google native и Responses protocols откладывается до появления реальной модели, которой они необходимы.
+
+## 3. Provider interface
 
 ```go
 type ModelProvider interface {
@@ -31,49 +38,117 @@ type ModelProvider interface {
 }
 ```
 
-## 3. Supported upstream protocols
+Cognitive modules не зависят от upstream request shape.
 
-OpenCode Zen exposes models through multiple protocol families. The Go adapter must normalize:
-
-- OpenAI Responses API;
-- Anthropic Messages API;
-- Google native generation API;
-- OpenAI-compatible Chat Completions.
-
-Internal cognitive modules must not depend on a provider-specific request shape.
-
-## 4. Master key
-
-The master key is loaded only from deployment secret storage.
-
-It must never be:
-
-- sent to OpenWebUI;
-- returned through Sonata API;
-- stored in Neon;
-- stored in Qdrant;
-- included in XML instructions;
-- included in model prompts;
-- written to logs or traces;
-- exposed in admin diagnostics;
-- copied into tool results.
-
-Only the Provider Adapter receives the resolved secret at runtime.
-
-## 5. Shared usage policy
-
-All authenticated users use the same default provider pool.
+Provider adapter строится на:
 
 ```text
-shared balance
-shared monthly provider limit
-shared model allowlist
-no per-user financial allocation
+net/http
+encoding/json
+shared http.Client
+shared http.Transport
 ```
 
-One user may consume a significant portion of the shared limit. This is an accepted mini MVP tradeoff.
+Отдельный SDK provider не используется.
 
-Sonata still enforces technical protection:
+## 4. Model allowlist
+
+Разрешённые модели:
+
+| Display name | Model ID | Runtime use |
+|---|---|---|
+| Big Pickle | `big-pickle` | Synthesis primary |
+| MiMo-V2.5 Free | `mimo-v2.5-free` | общий fallback |
+| North Mini Code Free | `north-mini-code-free` | future code workflow only |
+| Nemotron 3 Ultra Free | `nemotron-3-ultra-free` | Router и Summary |
+| DeepSeek V4 Flash Free | `deepseek-v4-flash-free` | Raw и Critical prisms |
+
+Модель, отсутствующая в allowlist, не может быть активирована автоматически после появления в `/models`.
+
+## 5. Role routing
+
+```yaml
+roles:
+  router:
+    primary: nemotron-3-ultra-free
+    fallback:
+      - mimo-v2.5-free
+
+  raw:
+    primary: deepseek-v4-flash-free
+    fallback:
+      - mimo-v2.5-free
+
+  critical:
+    primary: deepseek-v4-flash-free
+    fallback:
+      - mimo-v2.5-free
+
+  summary:
+    primary: nemotron-3-ultra-free
+    fallback:
+      - mimo-v2.5-free
+
+  synthesis_tooling:
+    primary: big-pickle
+    fallback:
+      - deepseek-v4-flash-free
+      - mimo-v2.5-free
+
+  synthesis_final:
+    primary: big-pickle
+    fallback:
+      - deepseek-v4-flash-free
+      - mimo-v2.5-free
+```
+
+`north-mini-code-free` не участвует в обычном cognitive pipeline.
+
+Он резервируется для будущих:
+
+- code analysis;
+- repository tasks;
+- IDE integration;
+- sandbox result analysis.
+
+## 6. Master key
+
+Master key загружается только через logical secret reference:
+
+```text
+opencode_zen_master_key
+-> config/secrets.yaml
+-> Render Environment Group
+-> OPENCODE_ZEN_API_KEY
+```
+
+Master key никогда не должен:
+
+- передаваться в OpenWebUI;
+- возвращаться через Sonata API;
+- храниться в Neon;
+- храниться в Qdrant;
+- включаться в protected instructions;
+- включаться в manifests;
+- включаться в model prompt;
+- записываться в logs или traces;
+- отображаться в diagnostics;
+- копироваться в tool results.
+
+Только Provider Adapter получает resolved `SecretValue`.
+
+## 7. Shared usage policy
+
+```text
+one shared master key
++ one shared provider balance or limit
++ one shared allowlist
++ no per-user financial allocation
+```
+
+Один пользователь может внести существенный вклад в исчерпание общего limit. Это осознанный компромисс mini MVP.
+
+Sonata сохраняет технические ограничения:
 
 - maximum concurrent requests;
 - maximum active full pipelines;
@@ -82,44 +157,57 @@ Sonata still enforces technical protection:
 - maximum output size;
 - retry budget;
 - circuit breaker;
-- bounded tool loop.
+- bounded tool loop;
+- базовый anti-abuse control.
 
-These controls protect service stability and are not financial quotas.
+Эти ограничения защищают стабильность сервиса и не являются финансовыми quotas.
 
-## 6. Provider exhaustion
+## 8. Failure and fallback behavior
 
-The Provider Adapter maps upstream balance and limit failures to:
+Fallback выполняется только при model-level failure:
+
+```text
+MODEL_UNAVAILABLE
+MODEL_TIMEOUT
+MODEL_RATE_LIMITED
+MODEL_RESPONSE_INVALID
+MODEL_PROTOCOL_ERROR
+```
+
+Fallback не помогает, если исчерпан общий provider balance или master-key limit.
+
+Provider exhaustion нормализуется в:
 
 ```text
 PROVIDER_EXHAUSTED
 ```
 
-Expected behavior:
+Поведение:
 
-1. Stop automatic retries that would consume additional requests.
-2. Open a short circuit breaker for the affected provider or model.
-3. Return a clear UI-safe error.
-4. Preserve the cognitive run as failed before generation.
-5. Do not expose upstream credentials or raw provider response.
+1. Прекратить retries, способные увеличить число неуспешных requests.
+2. Открыть circuit breaker для provider.
+3. Вернуть безопасную понятную ошибку.
+4. Зафиксировать cognitive run как failed до завершения generation.
+5. Не возвращать raw upstream error и credentials.
+6. Не включать скрытый paid fallback.
 
-No hidden paid fallback is activated automatically.
+## 9. User providers in OpenWebUI
 
-## 7. User provider keys in OpenWebUI
+Пользователь может настроить собственные provider connections непосредственно в OpenWebUI.
 
-Users may configure their own provider connections in OpenWebUI.
+В mini MVP это отдельный direct-provider fallback.
 
-In mini MVP this is a separate direct-provider fallback. It does not automatically power Sonata's internal 18-call pipeline.
+Он не запускает внутренний pipeline Sonata и не получает:
 
-Direct OpenWebUI provider mode does not receive:
-
-- protected Sonata XML;
+- protected instructions;
+- protected default manifests;
 - internal prism reports;
-- Sonata emotional state;
-- private Sonata RAG context;
+- emotional state Sonata;
+- private RAG context;
 - master key;
 - Synthesis tool policy.
 
-The UI must make this distinction clear:
+UI должен различать:
 
 ```text
 Sonata model
@@ -127,71 +215,51 @@ vs
 Direct provider model
 ```
 
-## 8. Future BYOK bridge
+## 10. Future BYOK bridge
 
-A later version may allow a user's provider key to power Sonata itself.
-
-Required design:
+Поздняя версия может позволить user credential питать внутренний pipeline Sonata.
 
 ```text
 user credential
--> encrypted secret storage or vault
+-> encrypted secret storage or external vault
 -> opaque credential reference
 -> Sonata Provider Adapter
 -> upstream provider
 ```
 
-Requirements:
+Требования:
 
-- credentials encrypted at rest;
-- no raw key in Neon application tables;
-- no key in prompt, tool call or trace;
+- encrypted at rest;
+- no raw key in application tables;
+- no key in prompts, tool calls или traces;
 - provider-specific scope;
 - explicit user ownership;
-- deletion and rotation;
-- audit trail without secret value;
-- no cross-user credential access;
-- fallback order controlled by user.
+- deletion и rotation;
+- audit без secret value;
+- no cross-user access;
+- user-controlled fallback order.
 
-## 9. Model registry and allowlist
+## 11. Model registry
 
-Sonata may synchronize model metadata from OpenCode Zen, but production selection is restricted by a local allowlist.
+Sonata может синхронизировать model metadata из Zen, но registry не активирует модели самостоятельно.
+
+Metadata:
 
 ```yaml
-models:
-  router:
-    - approved-low-cost-model
-  prism:
-    - approved-main-model
-  summary:
-    - approved-low-cost-model
-  synthesis:
-    - approved-strong-model
+model_id: string
+protocol: openai_chat_completions
+context_limit: integer
+pricing_class: free | paid | unknown
+privacy_class: string
+status: enabled | disabled | deprecated
+approved_roles: list
 ```
 
-The allowlist protects against:
+Изменение role routing выполняется только через versioned YAML configuration и deployment review.
 
-- unexpected model appearance;
-- deprecated models;
-- incompatible protocols;
-- models with unsuitable privacy policy;
-- accidental use of expensive models;
-- behavior changes without review.
+## 12. Privacy classes
 
-Model metadata should include:
-
-- model ID;
-- protocol family;
-- context limit;
-- pricing class;
-- privacy class;
-- status;
-- deprecation date;
-- approved runtime roles.
-
-## 10. Privacy classes
-
-Each upstream model receives an internal privacy class:
+Каждая модель получает internal privacy class:
 
 ```text
 standard
@@ -200,19 +268,20 @@ training-eligible
 restricted
 ```
 
-Private memory and sensitive documents must not be sent to models whose policy allows training or unsuitable retention unless the user explicitly opts in and the model is enabled by policy.
+Free status модели не означает автоматическую пригодность для private memory или sensitive documents.
 
-Free model status does not imply suitability for private data.
+Sensitive context передаётся только моделям, разрешённым policy.
 
-## 11. Usage accounting
+## 13. Usage accounting
 
-Sonata stores provider usage metadata without credentials:
+Sonata сохраняет metadata без credentials:
 
 ```yaml
 run_id: uuid
 user_id: uuid
 provider: opencode_zen
 model_id: string
+runtime_role: string
 input_tokens: integer
 output_tokens: integer
 cached_tokens: integer
@@ -221,11 +290,9 @@ status: string
 created_at: timestamp
 ```
 
-This accounting is for observability and capacity planning, not individual quota enforcement.
+Это accounting для observability и capacity planning, а не quota enforcement.
 
-## 12. Error normalization
-
-Internal errors:
+## 14. Error normalization
 
 ```text
 PROVIDER_UNAVAILABLE
@@ -238,48 +305,32 @@ MODEL_RATE_LIMITED
 MODEL_RESPONSE_INVALID
 ```
 
-Raw provider error bodies are not returned to ordinary users.
+Raw provider error bodies не возвращаются ordinary users и проходят redaction до logging.
 
-## 13. Future Sonata proxy API
+## 15. Future Sonata proxy API
 
-Sonata will later expose its own API credentials and act as a provider facade:
+В будущем Sonata предоставляет собственные API credentials:
 
 ```text
 IDE or external client
 -> Sonata API key
 -> Sonata pipeline
--> OpenCode Zen or BYOK
+-> OpenCode Zen or user BYOK
 ```
 
-A Sonata API key authenticates access to Sonata. It is not an OpenCode Zen key and must never reveal or proxy the upstream credential directly.
+Sonata API key авторизует доступ к Sonata и никогда не раскрывает upstream credential.
 
-## 14. Consequences
+## 16. Validation criteria
 
-Advantages:
+ADR реализован, когда:
 
-- one integration point for many models;
-- simple initial operations;
-- no individual billing system;
-- model changes through configuration;
-- compatible future proxy design.
-
-Accepted risks:
-
-- one user can contribute to exhausting the shared balance;
-- provider exhaustion affects all default users;
-- direct OpenWebUI BYOK does not preserve Sonata pipeline;
-- protocol normalization must support several API families;
-- privacy differs across individual models.
-
-## 15. Validation criteria
-
-This decision is implemented when:
-
-- all model calls pass through the Go Provider Adapter;
-- master key is present only in deployment secret storage;
-- no logs or database rows contain the key;
-- model allowlist is enforced;
-- provider exhaustion returns normalized status;
-- direct OpenWebUI providers are visually distinct from Sonata;
-- usage accounting works without financial quotas;
-- tests cover secret redaction, shared exhaustion and disabled models.
+- все LLM calls проходят через `OpenCodeZenProvider`;
+- используется один Chat Completions transport;
+- role routing совпадает с accepted model table;
+- model allowlist enforced;
+- master key доступен только через SecretResolver;
+- logs и database не содержат key;
+- model fallback отличается от provider exhaustion;
+- direct OpenWebUI providers визуально отделены от Sonata;
+- usage accounting работает без financial quotas;
+- tests покрывают secret redaction, model fallback, exhaustion и disabled models.
