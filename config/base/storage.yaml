@@ -1,0 +1,19 @@
+storage:
+  database:
+    url_ref: neon_database_url
+    direct_url_ref: neon_database_direct_url
+    min_connections: 1
+    max_connections: 10
+    max_connection_lifetime: 30m
+
+  river:
+    enabled: true
+    worker_count: 2
+
+  object_store:
+    enabled: false
+    provider: r2
+    endpoint_ref: r2_endpoint
+    bucket: ""
+    access_key_ref: r2_access_key
+    secret_key_ref: r2_secret_key

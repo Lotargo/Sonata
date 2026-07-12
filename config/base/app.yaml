@@ -1,0 +1,8 @@
+app:
+  service_name: sonata
+  environment: base
+  http_address: ":8080"
+  shutdown_timeout: 20s
+  openwebui:
+    trust_forwarded_headers: true
+    internal_bearer_secret_ref: openwebui_internal_secret

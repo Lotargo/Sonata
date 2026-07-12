@@ -1,0 +1,3 @@
+app:
+  environment: local
+  http_address: ":8080"

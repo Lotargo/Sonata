@@ -1,0 +1,28 @@
+version: 1
+
+base:
+  - base/app.yaml
+  - base/cognition.yaml
+  - base/models.yaml
+  - base/providers.yaml
+  - base/storage.yaml
+  - base/retrieval.yaml
+  - base/emotion.yaml
+  - base/observability.yaml
+  - base/limits.yaml
+  - base/features.yaml
+
+profiles:
+  local:
+    - environments/local/app.yaml
+    - environments/local/observability.yaml
+
+  staging:
+    - environments/staging/app.yaml
+    - environments/staging/observability.yaml
+
+  production:
+    - environments/production/app.yaml
+    - environments/production/observability.yaml
+
+secrets: secrets.yaml

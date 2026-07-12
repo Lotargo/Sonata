@@ -1,0 +1,20 @@
+providers:
+  open_code_zen:
+    endpoint: https://opencode.ai/zen/v1/chat/completions
+    protocol: openai_chat_completions
+    api_key_ref: opencode_zen_master_key
+
+  langsearch:
+    endpoint: https://api.langsearch.com/v1/web-search
+    protocol: http_json
+    api_key_ref: langsearch_api_key
+
+  qdrant:
+    endpoint_ref: qdrant_endpoint
+    protocol: qdrant_grpc
+    api_key_ref: qdrant_api_key
+
+  grafana_otlp:
+    endpoint_ref: grafana_otlp_endpoint
+    protocol: otlp_http_protobuf
+    headers_ref: grafana_otlp_headers

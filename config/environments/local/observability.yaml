@@ -1,0 +1,6 @@
+observability:
+  logging:
+    level: debug
+  otlp:
+    enabled: false
+    trace_sample: 1.0

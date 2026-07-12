@@ -1,0 +1,6 @@
+limits:
+  request_bytes: 2097152
+  manifest_bytes: 65536
+  context_tokens: 65536
+  active_full_pipelines: 4
+  document_bytes: 52428800

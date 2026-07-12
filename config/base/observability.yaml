@@ -1,0 +1,12 @@
+observability:
+  logging:
+    level: info
+    format: json
+    redact_content: true
+
+  otlp:
+    enabled: false
+    provider_ref: grafana_otlp
+    trace_sample: 0.10
+    metrics: true
+    logs: false

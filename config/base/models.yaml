@@ -1,0 +1,74 @@
+models:
+  allowlist:
+    big-pickle:
+      provider_ref: open_code_zen
+      protocol: openai_chat_completions
+      enabled: true
+      privacy_class: standard
+
+    mimo-v2.5-free:
+      provider_ref: open_code_zen
+      protocol: openai_chat_completions
+      enabled: true
+      privacy_class: standard
+
+    north-mini-code-free:
+      provider_ref: open_code_zen
+      protocol: openai_chat_completions
+      enabled: true
+      privacy_class: standard
+      reserved_for: future_code_workflow
+
+    nemotron-3-ultra-free:
+      provider_ref: open_code_zen
+      protocol: openai_chat_completions
+      enabled: true
+      privacy_class: standard
+
+    deepseek-v4-flash-free:
+      provider_ref: open_code_zen
+      protocol: openai_chat_completions
+      enabled: true
+      privacy_class: standard
+
+  roles:
+    router: &light_role
+      primary: nemotron-3-ultra-free
+      fallback:
+        - mimo-v2.5-free
+      timeout: 45s
+      max_retries: 1
+      temperature: 0.0
+      max_output_tokens: 256
+
+    raw: &prism_role
+      primary: deepseek-v4-flash-free
+      fallback:
+        - mimo-v2.5-free
+      timeout: 90s
+      max_retries: 2
+      temperature: 0.7
+      max_output_tokens: 4096
+
+    critical:
+      <<: *prism_role
+      temperature: 0.3
+
+    summary:
+      <<: *light_role
+      max_output_tokens: 2048
+
+    synthesis_tooling: &synthesis_role
+      primary: big-pickle
+      fallback:
+        - deepseek-v4-flash-free
+        - mimo-v2.5-free
+      timeout: 120s
+      max_retries: 2
+      temperature: 0.2
+      max_output_tokens: 4096
+
+    synthesis_final:
+      <<: *synthesis_role
+      temperature: 0.5
+      max_output_tokens: 8192

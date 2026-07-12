@@ -1,0 +1,3 @@
+app:
+  environment: production
+  http_address: ":8080"

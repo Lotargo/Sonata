@@ -1,0 +1,7 @@
+cognition:
+  default_route: full
+  phase_timeout: 90s
+  prism_concurrency: 5
+  degraded_min_reports: 3
+  token_budget: 64000
+  tool_max_calls: 4

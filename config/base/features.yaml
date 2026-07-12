@@ -1,0 +1,6 @@
+features:
+  sandbox: false
+  colbert: false
+  byok_bridge: false
+  public_api: false
+  document_uploads: false

@@ -1,0 +1,10 @@
+retrieval:
+  memory_collection: sonata_memory
+  document_collection: sonata_documents
+  dense_model: intfloat/multilingual-e5-small
+  sparse_model: bm25
+  top_k: 12
+  fusion: reciprocal_rank_fusion
+  colbert:
+    enabled: false
+    model: answerdotai/answerai-colbert-small-v1
