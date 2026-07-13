@@ -38,17 +38,6 @@ type OpenCodeZenProvider struct {
 	allowlist      map[string]ModelDescriptor
 }
 
-// NewOpenCodeZenProvider is the production constructor. The resolved key enters
-// the provider boundary as config.SecretValue and is never included in errors.
-func NewOpenCodeZenProvider(
-	endpoint string,
-	credential config.SecretValue,
-	client *http.Client,
-	allowlist map[string]ModelDescriptor,
-) (*OpenCodeZenProvider, error) {
-	return newOpenCodeZenProvider(endpoint, credential, client, allowlist)
-}
-
 // NewOpenCodeZenProviderFromConfig accepts only the typed provider fragment,
 // resolved credential and model definitions required by this adapter.
 func NewOpenCodeZenProviderFromConfig(
@@ -73,7 +62,7 @@ func NewOpenCodeZenProviderFromConfig(
 			ReservedFor:  definition.ReservedFor,
 		}
 	}
-	return NewOpenCodeZenProvider(endpoint.Endpoint, credential, client, allowlist)
+	return newOpenCodeZenProvider(endpoint.Endpoint, credential, client, allowlist)
 }
 
 func newOpenCodeZenProvider(
