@@ -4,16 +4,16 @@ package config
 // deterministic affective dynamics engine. The legacy emotion fields remain in
 // EmotionConfig until the v0 transition engine is retired.
 type AffectiveConfig struct {
-	ProfileVersion       string                                    `yaml:"profile_version"`
-	IntegrationStep      Duration                                  `yaml:"integration_step"`
-	MaxSubsteps          int                                       `yaml:"max_substeps"`
-	Personality          AffectivePersonalityConfig                `yaml:"personality"`
-	Dynamics             map[string]AffectiveEmotionDynamicsConfig `yaml:"dynamics"`
+	ProfileVersion        string                                    `yaml:"profile_version"`
+	IntegrationStep       Duration                                  `yaml:"integration_step"`
+	MaxSubsteps           int                                       `yaml:"max_substeps"`
+	Personality           AffectivePersonalityConfig                `yaml:"personality"`
+	Dynamics              map[string]AffectiveEmotionDynamicsConfig `yaml:"dynamics"`
 	PersonalityInfluences map[string]PersonalityInfluenceConfig     `yaml:"personality_influences"`
 	PhysiologyInfluences  map[string]PhysiologyInfluenceConfig      `yaml:"physiology_influences"`
-	Interactions         []EmotionInteractionConfig                `yaml:"interactions"`
-	Drives               map[string]DriveDefinitionConfig           `yaml:"drives"`
-	ComplexStates        map[string]ComplexStateDefinitionConfig    `yaml:"complex_states"`
+	Interactions          []EmotionInteractionConfig                `yaml:"interactions"`
+	Drives                map[string]DriveDefinitionConfig          `yaml:"drives"`
+	ComplexStates         map[string]ComplexStateDefinitionConfig   `yaml:"complex_states"`
 }
 
 type AffectivePersonalityConfig struct {
@@ -74,7 +74,7 @@ type ComplexStateDefinitionConfig struct {
 	MinExitDuration  Duration           `yaml:"min_exit_duration"`
 	EntryThreshold   float64            `yaml:"entry_threshold"`
 	ExitThreshold    float64            `yaml:"exit_threshold"`
-	Effects           StateEffectsConfig `yaml:"effects"`
+	Effects          StateEffectsConfig `yaml:"effects"`
 }
 
 type ConditionConfig struct {
