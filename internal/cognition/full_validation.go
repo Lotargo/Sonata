@@ -11,13 +11,27 @@ func requireRoleArtifacts(artifacts map[RuntimeRole]RoleArtifacts, role RuntimeR
 	if !exists {
 		return RoleArtifacts{}, fmt.Errorf("artifacts for role %s are required", role)
 	}
-	if err := validateArtifactRef(value.Instruction, "role instruction"); err != nil {
-		return RoleArtifacts{}, fmt.Errorf("role %s: %w", role, err)
-	}
-	if err := validateManifestRef(value.Manifest); err != nil {
-		return RoleArtifacts{}, fmt.Errorf("role %s: %w", role, err)
+	if err := validateRoleArtifacts(role, value); err != nil {
+		return RoleArtifacts{}, err
 	}
 	return value, nil
+}
+
+func validateRoleArtifacts(role RuntimeRole, artifacts RoleArtifacts) error {
+	spec, exists := RoleSpecFor(role)
+	if !exists {
+		return fmt.Errorf("unknown runtime role %q", role)
+	}
+	if err := validateArtifactRef(artifacts.Instruction, "role instruction"); err != nil {
+		return fmt.Errorf("role %s: %w", role, err)
+	}
+	if artifacts.Instruction.ID != spec.InstructionID {
+		return fmt.Errorf("role %s instruction ID is %q, want %q", role, artifacts.Instruction.ID, spec.InstructionID)
+	}
+	if err := validateManifestRef(artifacts.Manifest); err != nil {
+		return fmt.Errorf("role %s: %w", role, err)
+	}
+	return nil
 }
 
 func roleForPrismPhase(prism Prism, phase Phase) RuntimeRole {
