@@ -5,8 +5,11 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 )
+
+const compiledPromptRedacted = "[REDACTED COMPILED PROMPT]"
 
 type PromptRole string
 
@@ -51,8 +54,17 @@ type CompiledPrompt struct {
 	Metadata CompilationMetadata
 }
 
-func (CompiledPrompt) String() string   { return "[REDACTED COMPILED PROMPT]" }
+func (CompiledPrompt) String() string   { return compiledPromptRedacted }
 func (CompiledPrompt) GoString() string { return "protected.CompiledPrompt{REDACTED}" }
+func (CompiledPrompt) LogValue() slog.Value {
+	return slog.StringValue(compiledPromptRedacted)
+}
+func (CompiledPrompt) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + compiledPromptRedacted + `"`), nil
+}
+func (CompiledPrompt) MarshalText() ([]byte, error) {
+	return []byte(compiledPromptRedacted), nil
+}
 
 type PromptCompiler struct {
 	bundle *Bundle
