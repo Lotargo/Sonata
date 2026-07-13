@@ -18,7 +18,7 @@ import (
 )
 
 func TestHealthAndModelsEndpoints(t *testing.T) {
-	handler := NewHandler(Options{})
+	handler := NewHandler(Options{InternalCredential: testInternalCredential})
 
 	for path := range map[string]struct{}{
 		"/internal/health/live":  {},
@@ -35,7 +35,7 @@ func TestHealthAndModelsEndpoints(t *testing.T) {
 		}
 	}
 
-	request := httptest.NewRequest(http.MethodGet, "/v1/models", nil)
+	request := authorizedRequest(http.MethodGet, "/v1/models", nil)
 	response := httptest.NewRecorder()
 	handler.ServeHTTP(response, request)
 	if response.Code != http.StatusOK {
@@ -62,25 +62,27 @@ func TestReadinessFailure(t *testing.T) {
 	}
 }
 
-func TestChatCompletionsSkeleton(t *testing.T) {
-	handler := NewHandler(Options{})
+func TestChatCompletionsUnavailableAndInvalidJSON(t *testing.T) {
+	handler := NewHandler(Options{InternalCredential: testInternalCredential})
 
 	response := httptest.NewRecorder()
-	request := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", strings.NewReader(`{"model":"sonata","messages":[{"role":"user","content":"hello"}],"stream":true}`))
+	request := authorizedRequest(http.MethodPost, "/v1/chat/completions", strings.NewReader(validChatBody(true)))
+	addForwardedIdentity(request)
 	handler.ServeHTTP(response, request)
-	if response.Code != http.StatusNotImplemented {
-		t.Fatalf("chat skeleton status = %d, want 501", response.Code)
+	if response.Code != http.StatusServiceUnavailable {
+		t.Fatalf("chat skeleton status = %d, want 503", response.Code)
 	}
 	var payload apiErrorEnvelope
 	if err := json.NewDecoder(response.Body).Decode(&payload); err != nil {
 		t.Fatalf("decode API error: %v", err)
 	}
-	if payload.Error.Type != "not_implemented" {
+	if payload.Error.Type != "service_unavailable" {
 		t.Fatalf("error type = %q", payload.Error.Type)
 	}
 
 	response = httptest.NewRecorder()
-	request = httptest.NewRequest(http.MethodPost, "/v1/chat/completions", strings.NewReader(`{"model":`))
+	request = authorizedRequest(http.MethodPost, "/v1/chat/completions", strings.NewReader(`{"model":`))
+	addForwardedIdentity(request)
 	handler.ServeHTTP(response, request)
 	if response.Code != http.StatusBadRequest {
 		t.Fatalf("invalid JSON status = %d, want 400", response.Code)
@@ -90,15 +92,18 @@ func TestChatCompletionsSkeleton(t *testing.T) {
 func TestStructuredAccessLog(t *testing.T) {
 	var output bytes.Buffer
 	logger := slog.New(slog.NewJSONHandler(&output, nil))
-	handler := NewHandler(Options{Logger: logger})
+	handler := NewHandler(Options{Logger: logger, InternalCredential: testInternalCredential})
 	response := httptest.NewRecorder()
-	handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/v1/models", nil))
+	handler.ServeHTTP(response, authorizedRequest(http.MethodGet, "/v1/models", nil))
 
 	logLine := output.String()
 	for _, fragment := range []string{`"msg":"http request"`, `"method":"GET"`, `"path":"/v1/models"`, `"status":200`, `"request_id":"`} {
 		if !strings.Contains(logLine, fragment) {
 			t.Fatalf("structured access log missing %s: %s", fragment, logLine)
 		}
+	}
+	if strings.Contains(logLine, testInternalCredential) {
+		t.Fatal("structured access log leaked internal credential")
 	}
 }
 
