@@ -83,13 +83,13 @@
 
 ## 03. HTTP API и OpenWebUI boundary
 
-- [ ] Добавлены `net/http` и `chi` application server.
-- [ ] Реализован graceful shutdown.
-- [ ] Реализованы request ID, panic recovery, timeout и structured logging middleware.
-- [ ] Реализован `GET /internal/health/live`.
-- [ ] Реализован `GET /internal/health/ready`.
-- [ ] Реализован `GET /v1/models` с моделью `sonata`.
-- [ ] Реализован каркас `POST /v1/chat/completions`.
+- [x] Добавлены `net/http` и `chi` application server.
+- [x] Реализован graceful shutdown.
+- [x] Реализованы request ID, panic recovery, timeout и structured logging middleware.
+- [x] Реализован `GET /internal/health/live`.
+- [x] Реализован `GET /internal/health/ready`.
+- [x] Реализован `GET /v1/models` с моделью `sonata`.
+- [x] Реализован каркас `POST /v1/chat/completions`.
 - [ ] Реализован OpenAI-compatible SSE streaming.
 - [ ] Отмена клиентского запроса отменяет весь cognitive pipeline.
 - [ ] Sonata API развёртывается как private service.
