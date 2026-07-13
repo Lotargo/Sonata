@@ -74,14 +74,14 @@ func (config EmotionConfig) ValidateAffective() []string {
 
 func validatePersonality(problems *[]string, value AffectivePersonalityConfig) {
 	fields := map[string]float64{
-		"agreeableness":       value.Agreeableness,
-		"conscientiousness":   value.Conscientiousness,
-		"emotional_inertia":   value.EmotionalInertia,
-		"extraversion":        value.Extraversion,
-		"neuroticism":         value.Neuroticism,
-		"openness":            value.Openness,
-		"recovery_capacity":   value.RecoveryCapacity,
-		"sensitivity":         value.Sensitivity,
+		"agreeableness":     value.Agreeableness,
+		"conscientiousness": value.Conscientiousness,
+		"emotional_inertia": value.EmotionalInertia,
+		"extraversion":      value.Extraversion,
+		"neuroticism":       value.Neuroticism,
+		"openness":          value.Openness,
+		"recovery_capacity": value.RecoveryCapacity,
+		"sensitivity":       value.Sensitivity,
 	}
 	for name, field := range fields {
 		if !validateUnit(field) {
@@ -116,11 +116,11 @@ func validatePersonalityInfluences(problems *[]string, values map[string]Persona
 	validateExactKeys(problems, "emotion.affective.personality_influences", values, affectiveEmotionNames)
 	for name, value := range values {
 		fields := map[string]float64{
-			"agreeableness":       value.Agreeableness,
-			"conscientiousness":   value.Conscientiousness,
-			"extraversion":        value.Extraversion,
-			"neuroticism":         value.Neuroticism,
-			"openness":            value.Openness,
+			"agreeableness":     value.Agreeableness,
+			"conscientiousness": value.Conscientiousness,
+			"extraversion":      value.Extraversion,
+			"neuroticism":       value.Neuroticism,
+			"openness":          value.Openness,
 		}
 		for field, number := range fields {
 			if !validateSignedUnit(number) {
@@ -134,11 +134,11 @@ func validatePhysiologyInfluences(problems *[]string, values map[string]Physiolo
 	validateExactKeys(problems, "emotion.affective.physiology_influences", values, affectiveEmotionNames)
 	for name, value := range values {
 		fields := map[string]float64{
-			"arousal":      value.Arousal,
-			"energy":       value.Energy,
-			"fatigue":      value.Fatigue,
-			"stability":    value.Stability,
-			"stress_load":  value.StressLoad,
+			"arousal":     value.Arousal,
+			"energy":      value.Energy,
+			"fatigue":     value.Fatigue,
+			"stability":   value.Stability,
+			"stress_load": value.StressLoad,
 		}
 		for field, number := range fields {
 			if !validateSignedUnit(number) {
