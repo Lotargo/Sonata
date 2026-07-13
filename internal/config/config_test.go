@@ -31,7 +31,7 @@ func TestLoadRepositoryConfigWithAnchors(t *testing.T) {
 	if got := cfg.Models.Roles["raw"].Primary; got != "deepseek-v4-flash-free" {
 		t.Fatalf("raw primary = %q", got)
 	}
-	if got := cfg.Models.Roles["critical"].Timeout.String(); got != "90s" {
+	if got := cfg.Models.Roles["critical"].Timeout.String(); got != "1m30s" {
 		t.Fatalf("critical timeout = %q", got)
 	}
 	if got := cfg.Models.Roles["summary"].Primary; got != "nemotron-3-ultra-free" {
