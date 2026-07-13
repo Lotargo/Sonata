@@ -8,6 +8,7 @@ base:
   - base/storage.yaml
   - base/retrieval.yaml
   - base/emotion.yaml
+  - base/affective.yaml
   - base/observability.yaml
   - base/limits.yaml
   - base/features.yaml
