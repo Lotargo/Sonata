@@ -30,6 +30,7 @@ type Options struct {
 	Ready              ReadinessCheck
 	InternalCredential string
 	Chat               ChatService
+	OutputFilter       OutputFilterFactory
 }
 
 func NewHandler(options Options) http.Handler {
@@ -72,7 +73,7 @@ func NewHandler(options Options) http.Handler {
 	router.Route("/v1", func(api chi.Router) {
 		api.Use(requireInternalCredential(options.InternalCredential))
 		api.Get("/models", modelsHandler)
-		api.With(requireForwardedIdentity).Post("/chat/completions", chatCompletionsHandler(maxRequestBytes, options.Chat))
+		api.With(requireForwardedIdentity).Post("/chat/completions", chatCompletionsHandler(maxRequestBytes, options.Chat, options.OutputFilter))
 	})
 
 	return router
