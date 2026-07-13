@@ -1,0 +1,82 @@
+envVarGroups:
+  - name: sonata-runtime-secrets
+    envVars:
+      - key: OPENCODE_ZEN_API_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_DIRECT_URL
+        sync: false
+      - key: LANGSEARCH_API_KEY
+        sync: false
+      - key: QDRANT_URL
+        sync: false
+      - key: QDRANT_API_KEY
+        sync: false
+      - key: OPENWEBUI_INTERNAL_SECRET
+        generateValue: true
+      - key: GRAFANA_OTLP_ENDPOINT
+        sync: false
+
+services:
+  - type: pserv
+    name: sonata-api
+    runtime: go
+    region: frankfurt
+    plan: starter
+    branch: main
+    autoDeployTrigger: checksPass
+    buildCommand: go build -trimpath -ldflags="-s -w" -o ./bin/sonata ./cmd/sonata
+    startCommand: ./bin/sonata api --config-root ./config --profile production
+    healthCheckPath: /internal/health/ready
+    maxShutdownDelaySeconds: 30
+    envVars:
+      - fromGroup: sonata-runtime-secrets
+      - key: SONATA_PROFILE
+        value: production
+
+  - type: web
+    name: sonata-web
+    runtime: image
+    image:
+      url: ghcr.io/open-webui/open-webui:v0.10.2
+    region: frankfurt
+    plan: starter
+    healthCheckPath: /health
+    dockerCommand: >-
+      bash -lc 'export OPENAI_API_BASE_URL="http://${SONATA_INTERNAL_ADDRESS}/v1"; exec bash start.sh'
+    disk:
+      name: openwebui-data
+      mountPath: /app/backend/data
+      sizeGB: 5
+    envVars:
+      - key: PORT
+        value: "8080"
+      - key: WEBUI_AUTH
+        value: "true"
+      - key: WEBUI_SECRET_KEY
+        generateValue: true
+      - key: ENABLE_OPENAI_API
+        value: "true"
+      - key: ENABLE_OLLAMA_API
+        value: "false"
+      - key: ENABLE_MEMORIES
+        value: "false"
+      - key: ENABLE_FORWARD_USER_INFO_HEADERS
+        value: "true"
+      - key: SCARF_NO_ANALYTICS
+        value: "true"
+      - key: DO_NOT_TRACK
+        value: "true"
+      - key: ANONYMIZED_TELEMETRY
+        value: "false"
+      - key: SONATA_INTERNAL_ADDRESS
+        fromService:
+          name: sonata-api
+          type: pserv
+          property: hostport
+      - key: OPENAI_API_KEY
+        fromService:
+          name: sonata-api
+          type: pserv
+          envVarKey: OPENWEBUI_INTERNAL_SECRET
