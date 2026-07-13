@@ -1,0 +1,20 @@
+emotion:
+  affective:
+    initial_physiology:
+      fatigue: 0.00
+      arousal: 0.20
+      energy: 1.00
+      stress_load: 0.00
+      stability: 1.00
+
+    drives:
+      cognition:
+        initial_satisfaction: 0.50
+      coherence:
+        initial_satisfaction: 0.60
+      recovery:
+        initial_satisfaction: 0.80
+      safety:
+        initial_satisfaction: 0.70
+      social_connection:
+        initial_satisfaction: 0.50
