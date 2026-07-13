@@ -1,0 +1,125 @@
+name: Go CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: go-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GOFLAGS: -mod=readonly
+  OPENCODE_ZEN_API_KEY: ci-opencode-key-7d9e
+  DATABASE_URL: postgres://sonata:sonata@localhost:5432/sonata?sslmode=disable
+  DATABASE_DIRECT_URL: postgres://sonata:sonata@localhost:5432/sonata?sslmode=disable
+  LANGSEARCH_API_KEY: ci-langsearch-key-51a8
+  QDRANT_URL: https://qdrant.example.invalid
+  QDRANT_API_KEY: ci-qdrant-key-932f
+  OPENWEBUI_INTERNAL_SECRET: ci-openwebui-secret-b641
+  GRAFANA_OTLP_ENDPOINT: https://otlp.example.invalid
+
+jobs:
+  quality:
+    name: Tests and static analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Verify module files are tidy
+        env:
+          GOFLAGS: ""
+        run: |
+          go mod tidy
+          git diff --exit-code -- go.mod go.sum
+
+      - name: Check formatting
+        run: |
+          unformatted="$(gofmt -l .)"
+          if [ -n "$unformatted" ]; then
+            printf 'The following Go files are not formatted:\n%s\n' "$unformatted"
+            exit 1
+          fi
+
+      - name: Run unit tests
+        run: |
+          go test -coverprofile=coverage.out ./...
+          go tool cover -func=coverage.out
+
+      - name: Run race detector
+        run: go test -race ./...
+
+      - name: Run go vet
+        run: go vet ./...
+
+      - name: Run staticcheck
+        run: |
+          go install honnef.co/go/tools/cmd/staticcheck@latest
+          staticcheck ./...
+
+      - name: Run govulncheck
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+
+      - name: Prepare optional file-backed secrets
+        run: |
+          sudo install -d -m 0700 /etc/secrets
+          printf '%s\n' 'Authorization=Bearer ci-grafana-token' | sudo tee /etc/secrets/grafana-otlp-headers >/dev/null
+
+      - name: Validate all configuration profiles
+        run: |
+          for profile in local staging production; do
+            go run ./cmd/sonata config validate --config-root config --profile "$profile"
+          done
+
+      - name: Verify redacted configuration output
+        run: |
+          go run ./cmd/sonata config print --config-root config --profile production --redacted > /tmp/sonata-config.yaml
+          for secret in \
+            "$OPENCODE_ZEN_API_KEY" \
+            "$DATABASE_URL" \
+            "$DATABASE_DIRECT_URL" \
+            "$LANGSEARCH_API_KEY" \
+            "$QDRANT_URL" \
+            "$QDRANT_API_KEY" \
+            "$OPENWEBUI_INTERNAL_SECRET" \
+            "$GRAFANA_OTLP_ENDPOINT" \
+            'ci-grafana-token'; do
+            if grep -Fq -- "$secret" /tmp/sonata-config.yaml; then
+              echo 'redacted configuration output contains a raw secret value'
+              exit 1
+            fi
+          done
+
+  secret-scan:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan repository with Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
