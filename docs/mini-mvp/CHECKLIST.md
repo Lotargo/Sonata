@@ -139,14 +139,14 @@
 - [x] Каждая instruction имеет stable ID, version и hash.
 - [x] Каждый default manifest имеет stable ID, version и hash.
 - [x] Реализован strict XML loader protected artifacts.
-- [ ] Реализован typed prompt compiler.
-- [ ] Реализован manifest resolver:
-  - [ ] chat user manifest;
-  - [ ] global user manifest;
-  - [ ] protected default manifest.
-- [ ] При наличии user manifest default manifest отключается, но не удаляется.
-- [ ] При удалении user manifest default manifest автоматически возвращается.
-- [ ] User manifest принимается как free-form text, а не как XML/system instruction.
+- [x] Реализован typed prompt compiler.
+- [x] Реализован manifest resolver:
+  - [x] chat user manifest;
+  - [x] global user manifest;
+  - [x] protected default manifest.
+- [x] При наличии user manifest default manifest отключается, но не удаляется.
+- [x] При удалении user manifest default manifest автоматически возвращается.
+- [x] User manifest принимается как free-form text, а не как XML/system instruction.
 - [ ] User manifest ограничен по размеру и нормализуется.
 - [ ] Пользователь не может отключить protected instruction через prompt injection.
 - [ ] Compiled prompt не сохраняется в обычных logs и traces.
