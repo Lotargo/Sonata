@@ -144,6 +144,29 @@ func (value SignedUnit) Float64() float64 {
 	return float64(value)
 }
 
+// Multiplier is a bounded response coefficient in [0, 2].
+// Values below 1 suppress a channel, 1 preserves it and values above 1 amplify it.
+type Multiplier float64
+
+func NewMultiplier(value float64) (Multiplier, error) {
+	if !finite(value) {
+		return 0, errors.New("multiplier must be finite")
+	}
+	if value < 0 || value > 2 {
+		return 0, fmt.Errorf("multiplier %.6f must be between 0 and 2", value)
+	}
+	return Multiplier(value), nil
+}
+
+func (value Multiplier) Validate() error {
+	_, err := NewMultiplier(float64(value))
+	return err
+}
+
+func (value Multiplier) Float64() float64 {
+	return float64(value)
+}
+
 // NonNegative is a finite domain scalar in [0, +inf).
 type NonNegative float64
 
