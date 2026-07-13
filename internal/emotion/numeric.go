@@ -99,11 +99,11 @@ func NewUnit(value float64) (Unit, error) {
 	return Unit(value), nil
 }
 
-func ClampedUnit(value float64) Unit {
+func NewClampedUnit(value float64) (Unit, error) {
 	if !finite(value) {
-		return 0
+		return 0, errors.New("unit value must be finite")
 	}
-	return Unit(clamp(value, 0.0, 1.0))
+	return Unit(clamp(value, 0.0, 1.0)), nil
 }
 
 func (value Unit) Validate() error {
@@ -128,11 +128,11 @@ func NewSignedUnit(value float64) (SignedUnit, error) {
 	return SignedUnit(value), nil
 }
 
-func ClampedSignedUnit(value float64) SignedUnit {
+func NewClampedSignedUnit(value float64) (SignedUnit, error) {
 	if !finite(value) {
-		return 0
+		return 0, errors.New("signed unit value must be finite")
 	}
-	return SignedUnit(clamp(value, -1.0, 1.0))
+	return SignedUnit(clamp(value, -1.0, 1.0)), nil
 }
 
 func (value SignedUnit) Validate() error {
