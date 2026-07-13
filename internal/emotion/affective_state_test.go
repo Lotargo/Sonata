@@ -52,12 +52,14 @@ func TestAffectiveStateCloneDoesNotShareSliceStorage(t *testing.T) {
 		t.Fatal(err)
 	}
 	state.ComplexStates = []ComplexState{{
-		Kind:        ComplexStateChronicStress,
-		Activation:  Unit(0.5),
-		ActiveSince: at,
+		Kind:         ComplexStateChronicStress,
+		DefinitionID: "state-chronic-stress-v1",
+		Activation:   Unit(0.5),
+		ActiveSince:  at,
 	}}
 	state.Evidence = []StateEvidence{{
-		Kind: ComplexStateChronicStress,
+		Kind:         ComplexStateChronicStress,
+		DefinitionID: "state-chronic-stress-v1",
 		Evidence: EvidenceAccumulator{
 			PositiveArea:  NonNegative(2),
 			ObservedFor:   time.Hour,
@@ -78,6 +80,10 @@ func TestAffectiveStateCloneDoesNotShareSliceStorage(t *testing.T) {
 	}
 	if state.Evidence[0].Evidence.PositiveArea == clone.Evidence[0].Evidence.PositiveArea {
 		t.Fatal("evidence slice storage is shared")
+	}
+	if clone.ComplexStates[0].DefinitionID != state.ComplexStates[0].DefinitionID ||
+		clone.Evidence[0].DefinitionID != state.Evidence[0].DefinitionID {
+		t.Fatal("definition IDs were not preserved by clone")
 	}
 }
 
