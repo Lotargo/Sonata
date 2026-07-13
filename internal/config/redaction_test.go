@@ -19,10 +19,10 @@ func (f secretResolverFunc) Resolve(ctx context.Context, ref SecretRef) (SecretV
 }
 
 func TestSecretValueSerializationIsAlwaysRedacted(t *testing.T) {
-	const rawSecret = "serialization-secret-7f91"
+	const sentinel = "serialization-sentinel-7f91"
 	value := struct {
 		Secret SecretValue `json:"secret" yaml:"secret"`
-	}{Secret: newSecretValue(rawSecret)}
+	}{Secret: newSecretValue(sentinel)}
 
 	jsonData, err := json.Marshal(value)
 	if err != nil {
@@ -39,8 +39,8 @@ func TestSecretValueSerializationIsAlwaysRedacted(t *testing.T) {
 		"yaml":  string(yamlData),
 		"error": formattedError,
 	} {
-		if strings.Contains(output, rawSecret) {
-			t.Fatalf("%s output leaked raw secret: %q", format, output)
+		if strings.Contains(output, sentinel) {
+			t.Fatalf("%s output leaked protected value: %q", format, output)
 		}
 		if !strings.Contains(output, "[REDACTED]") {
 			t.Fatalf("%s output is not visibly redacted: %q", format, output)
@@ -49,9 +49,9 @@ func TestSecretValueSerializationIsAlwaysRedacted(t *testing.T) {
 }
 
 func TestRuntimeSnapshotAndStartupErrorsDoNotLeakResolvedSecrets(t *testing.T) {
-	const rawSecret = "resolved-secret-4c2a"
+	const sentinel = "resolved-sentinel-4c2a"
 	resolver := secretResolverFunc(func(context.Context, SecretRef) (SecretValue, error) {
-		return newSecretValue(rawSecret), nil
+		return newSecretValue(sentinel), nil
 	})
 
 	repositoryConfig := filepath.Join("..", "..", "config")
@@ -72,8 +72,8 @@ func TestRuntimeSnapshotAndStartupErrorsDoNotLeakResolvedSecrets(t *testing.T) {
 		"yaml": string(yamlSnapshot),
 		"json": string(jsonSnapshot),
 	} {
-		if strings.Contains(output, rawSecret) {
-			t.Fatalf("%s runtime snapshot leaked raw secret", format)
+		if strings.Contains(output, sentinel) {
+			t.Fatalf("%s runtime snapshot leaked protected value", format)
 		}
 	}
 
@@ -91,7 +91,7 @@ func TestRuntimeSnapshotAndStartupErrorsDoNotLeakResolvedSecrets(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected invalid configuration error")
 	}
-	if strings.Contains(err.Error(), rawSecret) {
-		t.Fatalf("startup error leaked raw secret: %v", err)
+	if strings.Contains(err.Error(), sentinel) {
+		t.Fatalf("startup error leaked protected value: %v", err)
 	}
 }
