@@ -12,9 +12,10 @@
 4. [`contracts/INSTRUCTION_AND_MANIFEST.md`](./contracts/INSTRUCTION_AND_MANIFEST.md) — неизменяемые instructions и переключаемые manifests.
 5. [`contracts/OPENWEBUI_BOUNDARY.md`](./contracts/OPENWEBUI_BOUNDARY.md) — service credential, forwarded identity и SSE boundary.
 6. [`deployment/RENDER_OPENWEBUI.md`](./deployment/RENDER_OPENWEBUI.md) — Render Blueprint, private Sonata API и live acceptance OpenWebUI.
-7. [`modules/EMOTION_MODULE.md`](./modules/EMOTION_MODULE.md) — детерминированный эмоциональный слой Sonata.
-8. [`decisions/OPENCODE_ZEN_PROVIDER.md`](./decisions/OPENCODE_ZEN_PROVIDER.md) — основной provider, общий master key и будущий BYOK.
-9. [`decisions/CONFIG_AND_SECRETS.md`](./decisions/CONFIG_AND_SECRETS.md) — единая загрузка конфигурации и секретов.
+7. [`modules/EMOTION_MODULE.md`](./modules/EMOTION_MODULE.md) — границы и базовая интеграционная роль emotional layer.
+8. [`modules/AFFECTIVE_DYNAMICS.md`](./modules/AFFECTIVE_DYNAMICS.md) — принятая математическая и доменная спецификация affective dynamics engine; имеет приоритет над упрощённой transition-моделью `EMOTION_MODULE.md`.
+9. [`decisions/OPENCODE_ZEN_PROVIDER.md`](./decisions/OPENCODE_ZEN_PROVIDER.md) — основной provider, общий master key и будущий BYOK.
+10. [`decisions/CONFIG_AND_SECRETS.md`](./decisions/CONFIG_AND_SECRETS.md) — единая загрузка конфигурации и секретов.
 
 ## Правила для агентов
 
@@ -43,7 +44,8 @@ docs/mini-mvp/
 ├── deployment/
 │   └── RENDER_OPENWEBUI.md
 ├── modules/
-│   └── EMOTION_MODULE.md
+│   ├── EMOTION_MODULE.md
+│   └── AFFECTIVE_DYNAMICS.md
 └── decisions/
     ├── OPENCODE_ZEN_PROVIDER.md
     └── CONFIG_AND_SECRETS.md
