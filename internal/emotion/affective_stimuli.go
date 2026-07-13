@@ -3,7 +3,6 @@ package emotion
 import (
 	"errors"
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/Lotargo/Sonata/internal/config"
@@ -237,12 +236,4 @@ func stimulusDefinitionFromConfig(kind StimulusKind, value config.StimulusDefini
 		definition.PhysiologyEffects = append(definition.PhysiologyEffects, NamedSignedEffect{Name: key, Weight: weight})
 	}
 	return definition, nil
-}
-
-func stableStimulusDefinitions(values []StimulusDefinition) []StimulusDefinition {
-	result := append([]StimulusDefinition(nil), values...)
-	sort.Slice(result, func(left, right int) bool {
-		return result[left].Kind < result[right].Kind
-	})
-	return result
 }
