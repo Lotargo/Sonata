@@ -61,12 +61,13 @@ func (config EmotionConfig) ValidateAffective() []string {
 		add("emotion.affective.max_substeps must be between 1 and 4096")
 	}
 	validatePersonality(&problems, affective.Personality)
-	validateDynamics(&problems, affective.Dynamics)
+	validateDynamics(&problems, affective.Dynamics, config.Baseline)
 	validatePersonalityInfluences(&problems, affective.PersonalityInfluences)
 	validatePhysiologyInfluences(&problems, affective.PhysiologyInfluences)
 	validateInteractions(&problems, affective.Interactions)
-	validateDrives(&problems, affective.Drives)
-	validateComplexStates(&problems, affective.ComplexStates)
+	definitionIDs := make(map[string]string, len(affective.Drives)+len(affective.ComplexStates))
+	validateDrives(&problems, affective.Drives, definitionIDs)
+	validateComplexStates(&problems, affective.ComplexStates, definitionIDs)
 
 	sort.Strings(problems)
 	return problems
@@ -90,7 +91,7 @@ func validatePersonality(problems *[]string, value AffectivePersonalityConfig) {
 	}
 }
 
-func validateDynamics(problems *[]string, values map[string]AffectiveEmotionDynamicsConfig) {
+func validateDynamics(problems *[]string, values map[string]AffectiveEmotionDynamicsConfig, baselines map[string]float64) {
 	validateExactKeys(problems, "emotion.affective.dynamics", values, affectiveEmotionNames)
 	for name, value := range values {
 		prefix := "emotion.affective.dynamics." + name
@@ -102,6 +103,8 @@ func validateDynamics(problems *[]string, values map[string]AffectiveEmotionDyna
 		}
 		if !validateUnit(value.Ceiling) {
 			*problems = append(*problems, prefix+".ceiling must be finite and between 0 and 1")
+		} else if baseline, exists := baselines[name]; exists && validateUnit(baseline) && value.Ceiling < baseline {
+			*problems = append(*problems, prefix+".ceiling cannot be below emotion.baseline."+name)
 		}
 		if !validatePositiveUnit(value.MaxPositiveDelta) {
 			*problems = append(*problems, prefix+".max_positive_delta must be finite, greater than 0 and at most 1")
@@ -181,9 +184,8 @@ func validateInteractions(problems *[]string, values []EmotionInteractionConfig)
 	}
 }
 
-func validateDrives(problems *[]string, values map[string]DriveDefinitionConfig) {
+func validateDrives(problems *[]string, values map[string]DriveDefinitionConfig, definitionIDs map[string]string) {
 	validateExactKeys(problems, "emotion.affective.drives", values, affectiveDriveNames)
-	definitionIDs := make(map[string]string, len(values))
 	for name, value := range values {
 		prefix := "emotion.affective.drives." + name
 		validateDefinitionID(problems, prefix, value.DefinitionID, definitionIDs)
@@ -212,9 +214,8 @@ func validateDrives(problems *[]string, values map[string]DriveDefinitionConfig)
 	}
 }
 
-func validateComplexStates(problems *[]string, values map[string]ComplexStateDefinitionConfig) {
+func validateComplexStates(problems *[]string, values map[string]ComplexStateDefinitionConfig, definitionIDs map[string]string) {
 	validateExactKeys(problems, "emotion.affective.complex_states", values, affectiveComplexStateNames)
-	definitionIDs := make(map[string]string, len(values))
 	for name, value := range values {
 		prefix := "emotion.affective.complex_states." + name
 		validateDefinitionID(problems, prefix, value.DefinitionID, definitionIDs)
