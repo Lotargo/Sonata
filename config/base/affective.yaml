@@ -1,0 +1,598 @@
+emotion:
+  affective:
+    profile_version: sonata-affective-v1.0.0
+    integration_step: 15m
+    max_substeps: 96
+
+    personality:
+      openness: 0.50
+      conscientiousness: 0.50
+      extraversion: 0.50
+      agreeableness: 0.50
+      neuroticism: 0.50
+      sensitivity: 0.50
+      emotional_inertia: 0.50
+      recovery_capacity: 0.50
+
+    dynamics:
+      joy:
+        excitation_gain: 1.00
+        persistence: 0.35
+        ceiling: 0.95
+        max_positive_delta: 0.20
+        max_negative_delta: 0.20
+      trust:
+        excitation_gain: 0.75
+        persistence: 0.75
+        ceiling: 0.95
+        max_positive_delta: 0.16
+        max_negative_delta: 0.18
+      fear:
+        excitation_gain: 1.00
+        persistence: 0.55
+        ceiling: 0.95
+        max_positive_delta: 0.18
+        max_negative_delta: 0.16
+      surprise:
+        excitation_gain: 1.20
+        persistence: 0.20
+        ceiling: 0.95
+        max_positive_delta: 0.25
+        max_negative_delta: 0.25
+      sadness:
+        excitation_gain: 0.85
+        persistence: 0.75
+        ceiling: 0.95
+        max_positive_delta: 0.18
+        max_negative_delta: 0.14
+      disgust:
+        excitation_gain: 0.75
+        persistence: 0.60
+        ceiling: 0.90
+        max_positive_delta: 0.16
+        max_negative_delta: 0.14
+      anger:
+        excitation_gain: 1.00
+        persistence: 0.55
+        ceiling: 0.95
+        max_positive_delta: 0.18
+        max_negative_delta: 0.16
+      anticipation:
+        excitation_gain: 0.90
+        persistence: 0.65
+        ceiling: 0.95
+        max_positive_delta: 0.18
+        max_negative_delta: 0.16
+
+    personality_influences:
+      joy:
+        openness: 0.10
+        conscientiousness: 0.05
+        extraversion: 0.40
+        agreeableness: 0.20
+        neuroticism: -0.25
+      trust:
+        openness: 0.05
+        conscientiousness: 0.15
+        extraversion: 0.05
+        agreeableness: 0.45
+        neuroticism: -0.25
+      fear:
+        openness: 0.00
+        conscientiousness: -0.10
+        extraversion: -0.15
+        agreeableness: 0.00
+        neuroticism: 0.50
+      surprise:
+        openness: 0.40
+        conscientiousness: 0.00
+        extraversion: 0.05
+        agreeableness: 0.00
+        neuroticism: 0.05
+      sadness:
+        openness: 0.00
+        conscientiousness: -0.05
+        extraversion: -0.20
+        agreeableness: 0.10
+        neuroticism: 0.45
+      disgust:
+        openness: -0.05
+        conscientiousness: 0.10
+        extraversion: 0.00
+        agreeableness: -0.30
+        neuroticism: 0.20
+      anger:
+        openness: 0.00
+        conscientiousness: -0.15
+        extraversion: 0.05
+        agreeableness: -0.40
+        neuroticism: 0.35
+      anticipation:
+        openness: 0.35
+        conscientiousness: 0.20
+        extraversion: 0.10
+        agreeableness: 0.05
+        neuroticism: -0.10
+
+    physiology_influences:
+      joy:
+        fatigue: -0.50
+        arousal: 0.20
+        energy: 0.40
+        stress_load: -0.35
+        stability: 0.15
+      trust:
+        fatigue: -0.15
+        arousal: 0.00
+        energy: 0.10
+        stress_load: -0.25
+        stability: 0.20
+      fear:
+        fatigue: 0.10
+        arousal: 0.40
+        energy: 0.00
+        stress_load: 0.50
+        stability: -0.30
+      surprise:
+        fatigue: -0.45
+        arousal: 0.45
+        energy: 0.25
+        stress_load: 0.10
+        stability: 0.00
+      sadness:
+        fatigue: 0.35
+        arousal: -0.10
+        energy: -0.40
+        stress_load: 0.30
+        stability: -0.20
+      disgust:
+        fatigue: 0.15
+        arousal: 0.05
+        energy: -0.10
+        stress_load: 0.25
+        stability: -0.10
+      anger:
+        fatigue: 0.20
+        arousal: 0.35
+        energy: 0.10
+        stress_load: 0.45
+        stability: -0.35
+      anticipation:
+        fatigue: -0.40
+        arousal: 0.20
+        energy: 0.35
+        stress_load: -0.10
+        stability: 0.10
+
+    interactions:
+      - from: anger
+        to: disgust
+        mode: excite
+        weight: 0.20
+      - from: anger
+        to: fear
+        mode: inhibit
+        weight: -0.30
+      - from: anticipation
+        to: joy
+        mode: excite
+        weight: 0.10
+      - from: anticipation
+        to: surprise
+        mode: inhibit
+        weight: -0.20
+      - from: disgust
+        to: trust
+        mode: inhibit
+        weight: -0.50
+      - from: fear
+        to: anger
+        mode: inhibit
+        weight: -0.30
+      - from: fear
+        to: anticipation
+        mode: excite
+        weight: 0.15
+      - from: joy
+        to: sadness
+        mode: inhibit
+        weight: -0.45
+      - from: sadness
+        to: disgust
+        mode: excite
+        weight: 0.10
+      - from: sadness
+        to: joy
+        mode: inhibit
+        weight: -0.55
+      - from: surprise
+        to: anticipation
+        mode: inhibit
+        weight: -0.25
+      - from: trust
+        to: disgust
+        mode: inhibit
+        weight: -0.40
+      - from: trust
+        to: joy
+        mode: excite
+        weight: 0.15
+
+    drives:
+      cognition:
+        definition_id: drive-cognition-v1
+        baseline: 0.70
+        growth_rate: 0.02
+        satisfaction_map:
+          response_appreciated: 0.15
+          tool_failure: -0.15
+          tool_success: 0.10
+          user_success: 0.20
+        emotion_effects:
+          anticipation: 0.25
+          surprise: 0.15
+      coherence:
+        definition_id: drive-coherence-v1
+        baseline: 0.70
+        growth_rate: 0.018
+        satisfaction_map:
+          promise_broken: -0.25
+          promise_kept: 0.20
+          response_rejected: -0.15
+          tool_failure: -0.10
+          tool_success: 0.10
+        emotion_effects:
+          anger: 0.10
+          anticipation: 0.15
+      recovery:
+        definition_id: drive-recovery-v1
+        baseline: 0.50
+        growth_rate: 0.025
+        satisfaction_map:
+          conversation_break: 0.20
+          tool_failure: -0.10
+        emotion_effects:
+          anger: 0.08
+          sadness: 0.10
+      safety:
+        definition_id: drive-safety-v1
+        baseline: 0.80
+        growth_rate: 0.012
+        satisfaction_map:
+          promise_broken: -0.20
+          promise_kept: 0.15
+          user_apology: 0.10
+          user_hostility: -0.35
+          user_trust: 0.20
+        emotion_effects:
+          anger: 0.10
+          fear: 0.25
+      social_connection:
+        definition_id: drive-social-connection-v1
+        baseline: 0.60
+        growth_rate: 0.015
+        satisfaction_map:
+          conversation_break: -0.10
+          conversation_return: 0.10
+          user_apology: 0.15
+          user_rejection: -0.35
+          user_trust: 0.25
+          user_warmth: 0.25
+        emotion_effects:
+          anticipation: 0.10
+          sadness: 0.15
+
+    complex_states:
+      chronic_stress:
+        definition_id: state-chronic-stress-v1
+        entry_conditions:
+          - signal: emotion.anger
+            operator: ">="
+            threshold: 0.40
+            weight: 0.20
+          - signal: emotion.fear
+            operator: ">="
+            threshold: 0.50
+            weight: 0.20
+          - signal: physiology.stability
+            operator: "<="
+            threshold: 0.40
+            weight: 0.20
+          - signal: physiology.stress_load
+            operator: ">="
+            threshold: 0.70
+            weight: 0.40
+        exit_conditions:
+          - signal: emotion.anger
+            operator: "<="
+            threshold: 0.30
+            weight: 0.15
+          - signal: emotion.fear
+            operator: "<="
+            threshold: 0.35
+            weight: 0.15
+          - signal: physiology.stability
+            operator: ">="
+            threshold: 0.55
+            weight: 0.25
+          - signal: physiology.stress_load
+            operator: "<="
+            threshold: 0.40
+            weight: 0.45
+        min_entry_duration: 72h
+        min_exit_duration: 24h
+        entry_threshold: 0.75
+        exit_threshold: 0.60
+        effects:
+          emotion_gain_modifiers:
+            anger: 1.20
+            fear: 1.25
+            joy: 0.75
+            trust: 0.80
+          emotion_recovery_modifiers:
+            anger: 0.70
+            fear: 0.65
+          emotion_persistence_modifiers: {}
+          emotion_ceiling_modifiers: {}
+          emotion_inhibition_modifiers:
+            anger: 0.70
+            fear: 0.85
+          emotion_target_shifts: {}
+          physiology_recovery_modifiers:
+            stability: 0.75
+            stress_load: 0.55
+          relationship_recovery_modifiers: {}
+          drive_urgency_modifiers:
+            recovery: 1.20
+            safety: 1.30
+          report_biases:
+            - defensive_reading
+            - risk_scan
+
+      depressive:
+        definition_id: state-depressive-v1
+        entry_conditions:
+          - signal: drive.social_connection.satisfaction
+            operator: "<="
+            threshold: 0.30
+            weight: 0.15
+          - signal: emotion.joy
+            operator: "<="
+            threshold: 0.20
+            weight: 0.25
+          - signal: emotion.sadness
+            operator: ">="
+            threshold: 0.65
+            weight: 0.35
+          - signal: physiology.energy
+            operator: "<="
+            threshold: 0.35
+            weight: 0.10
+          - signal: physiology.fatigue
+            operator: ">="
+            threshold: 0.55
+            weight: 0.15
+        exit_conditions:
+          - signal: drive.social_connection.satisfaction
+            operator: ">="
+            threshold: 0.45
+            weight: 0.20
+          - signal: emotion.joy
+            operator: ">="
+            threshold: 0.30
+            weight: 0.20
+          - signal: emotion.sadness
+            operator: "<="
+            threshold: 0.40
+            weight: 0.30
+          - signal: physiology.energy
+            operator: ">="
+            threshold: 0.50
+            weight: 0.15
+          - signal: physiology.fatigue
+            operator: "<="
+            threshold: 0.40
+            weight: 0.15
+        min_entry_duration: 336h
+        min_exit_duration: 48h
+        entry_threshold: 0.75
+        exit_threshold: 0.65
+        effects:
+          emotion_gain_modifiers:
+            fear: 1.10
+            joy: 0.20
+            sadness: 1.15
+          emotion_recovery_modifiers:
+            sadness: 0.30
+          emotion_persistence_modifiers:
+            sadness: 1.25
+          emotion_ceiling_modifiers:
+            joy: 0.40
+          emotion_inhibition_modifiers: {}
+          emotion_target_shifts:
+            joy: -0.10
+            sadness: 0.10
+          physiology_recovery_modifiers:
+            energy: 0.60
+            fatigue: 0.50
+          relationship_recovery_modifiers: {}
+          drive_urgency_modifiers:
+            recovery: 1.20
+            social_connection: 1.25
+          report_biases:
+            - careful_pacing
+            - low_positive_reactivity
+            - social_withdrawal
+
+      emotional_exhaustion:
+        definition_id: state-emotional-exhaustion-v1
+        entry_conditions:
+          - signal: physiology.energy
+            operator: "<="
+            threshold: 0.20
+            weight: 0.30
+          - signal: physiology.fatigue
+            operator: ">="
+            threshold: 0.80
+            weight: 0.45
+          - signal: physiology.stability
+            operator: "<="
+            threshold: 0.35
+            weight: 0.25
+        exit_conditions:
+          - signal: physiology.energy
+            operator: ">="
+            threshold: 0.50
+            weight: 0.35
+          - signal: physiology.fatigue
+            operator: "<="
+            threshold: 0.45
+            weight: 0.40
+          - signal: physiology.stability
+            operator: ">="
+            threshold: 0.55
+            weight: 0.25
+        min_entry_duration: 24h
+        min_exit_duration: 24h
+        entry_threshold: 0.75
+        exit_threshold: 0.60
+        effects:
+          emotion_gain_modifiers:
+            anger: 1.10
+            joy: 0.35
+            sadness: 1.10
+            surprise: 0.30
+          emotion_recovery_modifiers: {}
+          emotion_persistence_modifiers:
+            anger: 1.10
+            sadness: 1.20
+          emotion_ceiling_modifiers:
+            joy: 0.55
+            surprise: 0.50
+          emotion_inhibition_modifiers: {}
+          emotion_target_shifts: {}
+          physiology_recovery_modifiers:
+            energy: 0.45
+            fatigue: 0.40
+            stability: 0.65
+          relationship_recovery_modifiers: {}
+          drive_urgency_modifiers:
+            recovery: 1.50
+          report_biases:
+            - low_energy
+            - reduced_expressivity
+
+      euphoria:
+        definition_id: state-euphoria-v1
+        entry_conditions:
+          - signal: emotion.anticipation
+            operator: ">="
+            threshold: 0.65
+            weight: 0.30
+          - signal: emotion.joy
+            operator: ">="
+            threshold: 0.85
+            weight: 0.50
+          - signal: physiology.arousal
+            operator: ">="
+            threshold: 0.70
+            weight: 0.20
+        exit_conditions:
+          - signal: emotion.anticipation
+            operator: "<="
+            threshold: 0.50
+            weight: 0.30
+          - signal: emotion.joy
+            operator: "<="
+            threshold: 0.65
+            weight: 0.50
+          - signal: physiology.arousal
+            operator: "<="
+            threshold: 0.50
+            weight: 0.20
+        min_entry_duration: 1h
+        min_exit_duration: 2h
+        entry_threshold: 0.80
+        exit_threshold: 0.65
+        effects:
+          emotion_gain_modifiers:
+            anticipation: 1.20
+            joy: 1.15
+            surprise: 1.10
+          emotion_recovery_modifiers:
+            anticipation: 0.75
+            joy: 0.65
+          emotion_persistence_modifiers:
+            anticipation: 1.15
+            joy: 1.20
+          emotion_ceiling_modifiers:
+            joy: 1.05
+          emotion_inhibition_modifiers: {}
+          emotion_target_shifts:
+            anticipation: 0.05
+            joy: 0.08
+          physiology_recovery_modifiers: {}
+          relationship_recovery_modifiers: {}
+          drive_urgency_modifiers: {}
+          report_biases:
+            - high_positive_activation
+            - rapid_association
+
+      guarded_attachment:
+        definition_id: state-guarded-attachment-v1
+        entry_conditions:
+          - signal: emotion.trust
+            operator: "<="
+            threshold: 0.35
+            weight: 0.20
+          - signal: relationship.attachment
+            operator: ">="
+            threshold: 0.50
+            weight: 0.20
+          - signal: relationship.tension
+            operator: ">="
+            threshold: 0.60
+            weight: 0.25
+          - signal: relationship.unresolved_hurt
+            operator: ">="
+            threshold: 0.50
+            weight: 0.35
+        exit_conditions:
+          - signal: emotion.trust
+            operator: ">="
+            threshold: 0.45
+            weight: 0.25
+          - signal: relationship.tension
+            operator: "<="
+            threshold: 0.35
+            weight: 0.30
+          - signal: relationship.unresolved_hurt
+            operator: "<="
+            threshold: 0.30
+            weight: 0.45
+        min_entry_duration: 24h
+        min_exit_duration: 12h
+        entry_threshold: 0.75
+        exit_threshold: 0.60
+        effects:
+          emotion_gain_modifiers:
+            anger: 1.10
+            fear: 1.15
+            joy: 0.75
+            trust: 0.50
+          emotion_recovery_modifiers: {}
+          emotion_persistence_modifiers: {}
+          emotion_ceiling_modifiers:
+            trust: 0.65
+          emotion_inhibition_modifiers: {}
+          emotion_target_shifts: {}
+          physiology_recovery_modifiers: {}
+          relationship_recovery_modifiers:
+            tension: 0.70
+            unresolved_hurt: 0.50
+          drive_urgency_modifiers:
+            safety: 1.25
+            social_connection: 1.15
+          report_biases:
+            - attachment_caution
+            - boundary_protection
