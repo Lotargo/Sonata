@@ -160,19 +160,19 @@
 - [x] Определены typed input/output contracts всех runtime roles.
 - [x] Определён JSON contract Router: только `direct | full`.
 - [x] Router не имеет tools, RAG, EmotionReport и права менять модели.
-- [ ] Реализован direct route.
-- [ ] Реализован full route из 18 LLM-вызовов.
-- [ ] Raw-фаза запускает пять призм параллельно.
-- [ ] Raw-призмы не видят ответы друг друга.
-- [ ] Каждый critical run видит только raw своей призмы.
-- [ ] Каждый summary run видит только raw и critical своей призмы.
-- [ ] `synthesis_tooling` получает полный внутренний диалог.
-- [ ] `synthesis_final` получает внутренний диалог и результаты tools.
-- [ ] Два прохода Synthesis сохраняют единую identity Sonata.
-- [ ] Падение одной призмы может дать `DEGRADED`, а не обязательный полный отказ.
-- [ ] Установлены phase timeouts и concurrency limits.
-- [ ] Сохраняются role status, latency, model ID, instruction и manifest metadata.
-- [ ] Добавлены deterministic orchestration tests без реальных LLM.
+- [x] Реализован direct route.
+- [x] Реализован full route из 18 LLM-вызовов.
+- [x] Raw-фаза запускает пять призм параллельно.
+- [x] Raw-призмы не видят ответы друг друга.
+- [x] Каждый critical run видит только raw своей призмы.
+- [x] Каждый summary run видит только raw и critical своей призмы.
+- [x] `synthesis_tooling` получает полный внутренний диалог.
+- [x] `synthesis_final` получает внутренний диалог и результаты tools.
+- [x] Два прохода Synthesis сохраняют единую identity Sonata.
+- [x] Падение одной призмы может дать `DEGRADED`, а не обязательный полный отказ.
+- [x] Установлены phase timeouts и concurrency limits.
+- [x] Сохраняются role status, latency, model ID, instruction и manifest metadata.
+- [x] Добавлены deterministic orchestration tests без реальных LLM.
 
 **Критерий этапа:** изоляция пяти призм доказана тестами, а сложный запрос стабильно проходит весь pipeline.
 
