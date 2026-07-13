@@ -13,6 +13,7 @@ type AffectiveConfig struct {
 	PersonalityInfluences map[string]PersonalityInfluenceConfig     `yaml:"personality_influences"`
 	PhysiologyInfluences  map[string]PhysiologyInfluenceConfig      `yaml:"physiology_influences"`
 	Interactions          []EmotionInteractionConfig                `yaml:"interactions"`
+	Stimuli               map[string]StimulusDefinitionConfig       `yaml:"stimuli"`
 	Drives                map[string]DriveDefinitionConfig          `yaml:"drives"`
 	ComplexStates         map[string]ComplexStateDefinitionConfig   `yaml:"complex_states"`
 }
@@ -67,13 +68,20 @@ type EmotionInteractionConfig struct {
 	Weight float64 `yaml:"weight"`
 }
 
-type DriveDefinitionConfig struct {
+type StimulusDefinitionConfig struct {
 	DefinitionID       string             `yaml:"definition_id"`
-	Baseline           float64            `yaml:"baseline"`
-	InitialSatisfaction float64            `yaml:"initial_satisfaction"`
-	GrowthRate         float64            `yaml:"growth_rate"`
-	SatisfactionMap    map[string]float64 `yaml:"satisfaction_map"`
 	EmotionEffects     map[string]float64 `yaml:"emotion_effects"`
+	RelationshipEffects map[string]float64 `yaml:"relationship_effects"`
+	PhysiologyEffects  map[string]float64 `yaml:"physiology_effects"`
+}
+
+type DriveDefinitionConfig struct {
+	DefinitionID        string             `yaml:"definition_id"`
+	Baseline            float64            `yaml:"baseline"`
+	InitialSatisfaction float64            `yaml:"initial_satisfaction"`
+	GrowthRate          float64            `yaml:"growth_rate"`
+	SatisfactionMap     map[string]float64 `yaml:"satisfaction_map"`
+	EmotionEffects      map[string]float64 `yaml:"emotion_effects"`
 }
 
 type ComplexStateDefinitionConfig struct {
