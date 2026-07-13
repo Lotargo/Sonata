@@ -165,6 +165,7 @@ type EmotionConfig struct {
 	DecayRates   map[string]float64 `yaml:"decay_rates"`
 	MaxDelta     float64            `yaml:"max_delta"`
 	Relationship RelationshipConfig `yaml:"relationship"`
+	Affective    AffectiveConfig    `yaml:"affective"`
 }
 
 type RelationshipConfig struct {
