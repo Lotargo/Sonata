@@ -64,12 +64,18 @@ func runAPI(ctx context.Context, args []string, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "configuration invalid: %v\n", err)
 		return 1
 	}
+	internalCredential, ok := cfg.Secret(cfg.App.OpenWebUI.InternalBearerSecretRef)
+	if !ok || internalCredential.Empty() {
+		fmt.Fprintln(stderr, "configuration invalid: OpenWebUI internal credential is unresolved")
+		return 1
+	}
 
 	logger := newLogger(stderr, cfg.Observability.Logging.Level)
 	handler := httpapi.NewHandler(httpapi.Options{
-		Logger:          logger,
-		RequestTimeout:  cfg.Cognition.PhaseTimeout.Value() * 6,
-		MaxRequestBytes: cfg.Limits.RequestBytes,
+		Logger:             logger,
+		RequestTimeout:     cfg.Cognition.PhaseTimeout.Value() * 6,
+		MaxRequestBytes:    cfg.Limits.RequestBytes,
+		InternalCredential: internalCredential.Reveal(),
 	})
 	server := httpapi.NewServer(cfg.App.HTTPAddress, handler, cfg.App.ShutdownTimeout.Value(), logger)
 	logger.Info("starting Sonata API", "address", cfg.App.HTTPAddress, "profile", cfg.Profile())
