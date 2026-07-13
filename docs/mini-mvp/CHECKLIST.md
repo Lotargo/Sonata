@@ -19,6 +19,7 @@
 - [x] Зафиксирована политика OpenCode Zen и маршрутизация моделей.
 - [x] Зафиксирована единая система конфигурации и секретов.
 - [x] Зафиксирован детерминированный эмоциональный модуль.
+- [x] Зафиксирована принятая спецификация affective dynamics engine.
 - [x] Корневой `AGENTS.md` направляет mini MVP задачи в `docs/mini-mvp/`.
 - [ ] Все новые архитектурные решения сопровождаются обновлением этого checklist.
 
@@ -176,26 +177,49 @@
 
 **Критерий этапа:** изоляция пяти призм доказана тестами, а сложный запрос стабильно проходит весь pipeline.
 
-## 07. Emotional state module
+## 07. Affective state module
 
-Документ: [`modules/EMOTION_MODULE.md`](./modules/EMOTION_MODULE.md)
+Документы:
+
+- [`modules/EMOTION_MODULE.md`](./modules/EMOTION_MODULE.md)
+- [`modules/AFFECTIVE_DYNAMICS.md`](./modules/AFFECTIVE_DYNAMICS.md)
+
+### 07A. Реализованный v0 core
 
 - [x] Реализованы typed emotion и relationship state.
 - [x] Реализован baseline profile из config.
 - [x] Реализован deterministic stimulus extractor.
-- [x] Реализованы bounded transitions.
-- [x] Реализованы opposition/dominance rules.
-- [x] Реализован lazy decay.
+- [x] Реализованы bounded transitions v0.
+- [x] Реализованы opposition/dominance rules v0.
+- [x] Реализован lazy exponential decay v0.
 - [x] Реализован versioned state update.
-- [x] Реализован компактный `EmotionReport`.
+- [x] Реализован компактный `EmotionReport` v0.
 - [x] State изолирован по `user_id`.
 - [x] Модуль не использует LLM.
 - [x] Модуль не имеет tools и provider credentials.
 - [x] Emotional state не может менять security policy и memory facts.
 - [x] Добавлены tests на decay, bounds, conflict rules и concurrent updates.
-- [ ] Emotional module подключён к HTTP request flow и передаёт один versioned report всем cognitive roles.
 
-**Критерий этапа:** одинаковая последовательность событий даёт воспроизводимое bounded состояние без LLM.
+### 07B. Affective dynamics v1
+
+- [x] Проведена археология ключевых механик Sentio Engine и зафиксирована accepted design specification.
+- [ ] Реализованы bounded numeric primitives с явными domain types.
+- [ ] Реализован typed OCEAN personality profile и per-emotion personality influence.
+- [ ] Реализован physiology state: fatigue, arousal, energy, stress load и stability.
+- [ ] Реализованы разные excitation, recovery, persistence и ceiling для каждой эмоции.
+- [ ] Реализованы deterministic cross-emotion excitation/inhibition rules.
+- [ ] Реализованы typed drives и их влияние на эмоциональную динамику без autonomous actions.
+- [ ] Реализованы temporal evidence accumulators без raw message text.
+- [ ] Реализованы complex-state entry/exit conditions, duration и hysteresis.
+- [ ] Active complex states изменяют последующие transitions, а не только report labels.
+- [ ] Depressive state подавляет joy response и меняет sadness/fatigue recovery согласно versioned config.
+- [ ] Реализована чистая deterministic transition function и стабильный iteration order.
+- [ ] Большой elapsed interval обрабатывается bounded способом без неограниченного tick loop.
+- [ ] Добавлены golden trajectory, property, fuzz, replay и long-horizon tests.
+- [ ] Один canonical report version проецируется только в Raw, Critical и Synthesis; Router исключён, Summary не получает отдельный report.
+- [ ] Affective module подключён к HTTP request flow только после выполнения требований v1.
+
+**Критерий этапа:** одинаковая последовательность versioned events даёт воспроизводимое bounded состояние; personality, physiology, drives и active complex states изменяют будущую динамику без зависимости от LLM.
 
 ## 08. Neon PostgreSQL и canonical storage
 
@@ -214,15 +238,15 @@
   - [ ] instruction_versions;
   - [ ] manifest_versions;
   - [ ] user_manifests;
-  - [ ] emotional_states;
-  - [ ] emotional_events;
+  - [ ] affective_states;
+  - [ ] affective_events;
   - [ ] memory_items;
   - [ ] documents;
   - [ ] provider_usage;
   - [ ] outbox_events.
 - [ ] Все user-owned сущности имеют строгий owner boundary.
 - [ ] Реализованы transactions для cognitive run и связанных role runs.
-- [ ] Реализован optimistic/version lock emotional state.
+- [ ] Реализован optimistic/version lock affective state.
 - [ ] OpenWebUI и Sonata используют отдельные databases или schemas.
 - [ ] Добавлены integration tests PostgreSQL.
 
