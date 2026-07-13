@@ -147,7 +147,7 @@
 - [x] При наличии user manifest default manifest отключается, но не удаляется.
 - [x] При удалении user manifest default manifest автоматически возвращается.
 - [x] User manifest принимается как free-form text, а не как XML/system instruction.
-- [ ] User manifest ограничен по размеру и нормализуется.
+- [x] User manifest ограничен по размеру и нормализуется.
 - [x] Пользователь не может отключить protected instruction через prompt injection.
 - [ ] Compiled prompt не сохраняется в обычных logs и traces.
 - [x] Реализован output guard против утечки protected fragments.
