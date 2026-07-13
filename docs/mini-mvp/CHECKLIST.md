@@ -107,24 +107,24 @@
 
 Документ: [`decisions/OPENCODE_ZEN_PROVIDER.md`](./decisions/OPENCODE_ZEN_PROVIDER.md)
 
-- [ ] Реализован `ModelProvider` interface.
-- [ ] Реализован `OpenCodeZenProvider` на `net/http` и `encoding/json`.
-- [ ] Используется один shared `http.Client` и Transport.
-- [ ] Endpoint берётся только из typed config.
-- [ ] Master key передаётся adapter через `SecretValue`.
-- [ ] Реализован allowlist моделей.
-- [ ] Реализована role-to-model routing policy:
-  - [ ] Router → `nemotron-3-ultra-free`.
-  - [ ] Raw/Critical → `deepseek-v4-flash-free`.
-  - [ ] Summary → `nemotron-3-ultra-free`.
-  - [ ] Synthesis → `big-pickle`.
-- [ ] Реализован fallback на `mimo-v2.5-free` по принятой схеме.
-- [ ] `north-mini-code-free` не используется обычным pipeline.
-- [ ] Model failure отделён от `PROVIDER_EXHAUSTED`.
-- [ ] Реализованы timeout, retry budget и circuit breaker.
-- [ ] Raw provider errors проходят redaction.
-- [ ] Добавлен mock Zen server для integration tests.
-- [ ] Streaming и non-streaming ответы покрыты тестами.
+- [x] Реализован `ModelProvider` interface.
+- [x] Реализован `OpenCodeZenProvider` на `net/http` и `encoding/json`.
+- [x] Используется один shared `http.Client` и Transport.
+- [x] Endpoint берётся только из typed config.
+- [x] Master key передаётся adapter через `SecretValue`.
+- [x] Реализован allowlist моделей.
+- [x] Реализована role-to-model routing policy:
+  - [x] Router → `nemotron-3-ultra-free`.
+  - [x] Raw/Critical → `deepseek-v4-flash-free`.
+  - [x] Summary → `nemotron-3-ultra-free`.
+  - [x] Synthesis → `big-pickle`.
+- [x] Реализован fallback на `mimo-v2.5-free` по принятой схеме.
+- [x] `north-mini-code-free` не используется обычным pipeline.
+- [x] Model failure отделён от `PROVIDER_EXHAUSTED`.
+- [x] Реализованы timeout, retry budget и circuit breaker.
+- [x] Raw provider errors проходят redaction.
+- [x] Добавлен mock Zen server для integration tests.
+- [x] Streaming и non-streaming ответы покрыты тестами.
 
 **Критерий этапа:** каждая runtime role использует заданную модель, fallback работает только при model-level failure, master key не виден вне adapter.
 
@@ -329,12 +329,12 @@
 
 ## 15. Deployment на Render
 
-- [ ] Создан `render.yaml`.
-- [ ] Добавлен public OpenWebUI service.
-- [ ] Добавлен private Sonata API service.
+- [x] Создан `render.yaml`.
+- [x] Добавлен public OpenWebUI service.
+- [x] Добавлен private Sonata API service.
 - [ ] Добавлен Sonata background worker.
-- [ ] Создан единый Render Environment Group для Sonata secrets.
-- [ ] Business configuration не размазана по Render variables.
+- [x] Создан единый Render Environment Group для Sonata secrets.
+- [x] Business configuration не размазана по Render variables.
 - [ ] Настроена Neon database.
 - [ ] Настроен Qdrant Cloud.
 - [ ] Настроен OpenCode Zen master key.
