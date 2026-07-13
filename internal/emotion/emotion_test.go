@@ -166,6 +166,29 @@ func TestExtractorIsDeterministicAndDoesNotRetainMessage(t *testing.T) {
 	}
 }
 
+func TestIdenticalStimulusSequenceIsDeterministic(t *testing.T) {
+	now := time.Date(2026, 7, 13, 8, 0, 0, 0, time.UTC)
+	firstEngine := testEngine(t, func() time.Time { return now })
+	secondEngine := testEngine(t, func() time.Time { return now })
+	stimuli := []Stimulus{
+		{Kind: StimulusUserHostility, Source: "test", Intensity: 0.9, Confidence: 0.8, Valence: -1, Arousal: 1, CreatedAt: now},
+		{Kind: StimulusUserApology, Source: "test", Intensity: 0.7, Confidence: 0.9, Valence: 0.5, Arousal: 0.2, CreatedAt: now},
+		{Kind: StimulusPromiseKept, Source: "test", Intensity: 0.8, Confidence: 1, Valence: 1, Arousal: 0.4, CreatedAt: now},
+	}
+
+	firstReport, err := firstEngine.ApplyStimuli(context.Background(), firstEngine.Key("user-1"), stimuli)
+	if err != nil {
+		t.Fatal(err)
+	}
+	secondReport, err := secondEngine.ApplyStimuli(context.Background(), secondEngine.Key("user-1"), stimuli)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(firstReport, secondReport) {
+		t.Fatalf("identical stimuli produced different reports:\nfirst:  %#v\nsecond: %#v", firstReport, secondReport)
+	}
+}
+
 func TestGetReportOrBaselineDegradesOnStoreFailure(t *testing.T) {
 	profile, err := NewProfileFromConfig("sonata", testEmotionConfig())
 	if err != nil {
