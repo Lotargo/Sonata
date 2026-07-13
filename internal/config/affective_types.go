@@ -8,6 +8,7 @@ type AffectiveConfig struct {
 	IntegrationStep       Duration                                  `yaml:"integration_step"`
 	MaxSubsteps           int                                       `yaml:"max_substeps"`
 	Personality           AffectivePersonalityConfig                `yaml:"personality"`
+	InitialPhysiology     AffectivePhysiologyConfig                 `yaml:"initial_physiology"`
 	Dynamics              map[string]AffectiveEmotionDynamicsConfig `yaml:"dynamics"`
 	PersonalityInfluences map[string]PersonalityInfluenceConfig     `yaml:"personality_influences"`
 	PhysiologyInfluences  map[string]PhysiologyInfluenceConfig      `yaml:"physiology_influences"`
@@ -25,6 +26,14 @@ type AffectivePersonalityConfig struct {
 	Sensitivity       float64 `yaml:"sensitivity"`
 	EmotionalInertia  float64 `yaml:"emotional_inertia"`
 	RecoveryCapacity  float64 `yaml:"recovery_capacity"`
+}
+
+type AffectivePhysiologyConfig struct {
+	Fatigue    float64 `yaml:"fatigue"`
+	Arousal    float64 `yaml:"arousal"`
+	Energy     float64 `yaml:"energy"`
+	StressLoad float64 `yaml:"stress_load"`
+	Stability  float64 `yaml:"stability"`
 }
 
 type AffectiveEmotionDynamicsConfig struct {
@@ -59,11 +68,12 @@ type EmotionInteractionConfig struct {
 }
 
 type DriveDefinitionConfig struct {
-	DefinitionID    string             `yaml:"definition_id"`
-	Baseline        float64            `yaml:"baseline"`
-	GrowthRate      float64            `yaml:"growth_rate"`
-	SatisfactionMap map[string]float64 `yaml:"satisfaction_map"`
-	EmotionEffects  map[string]float64 `yaml:"emotion_effects"`
+	DefinitionID       string             `yaml:"definition_id"`
+	Baseline           float64            `yaml:"baseline"`
+	InitialSatisfaction float64            `yaml:"initial_satisfaction"`
+	GrowthRate         float64            `yaml:"growth_rate"`
+	SatisfactionMap    map[string]float64 `yaml:"satisfaction_map"`
+	EmotionEffects     map[string]float64 `yaml:"emotion_effects"`
 }
 
 type ComplexStateDefinitionConfig struct {
