@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"strings"
 	"unicode/utf8"
+
+	"golang.org/x/text/unicode/norm"
 )
 
 const DefaultMaxUserManifestBytes = 16 << 10
@@ -186,6 +188,7 @@ func normalizeUserManifest(value string, maximum int) (string, error) {
 	}
 	value = strings.ReplaceAll(value, "\r\n", "\n")
 	value = strings.ReplaceAll(value, "\r", "\n")
+	value = norm.NFC.String(value)
 	value = strings.TrimSpace(value)
 	if value == "" {
 		return "", errors.New("content must not be empty")
