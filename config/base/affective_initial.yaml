@@ -7,6 +7,13 @@ emotion:
       stress_load: 0.00
       stability: 1.00
 
+    physiology_recovery_rates:
+      arousal: 0.20
+      energy: 0.06
+      fatigue: 0.08
+      stability: 0.04
+      stress_load: 0.06
+
     drives:
       cognition:
         initial_satisfaction: 0.50
