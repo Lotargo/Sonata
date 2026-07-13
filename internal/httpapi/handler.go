@@ -23,10 +23,12 @@ const (
 type ReadinessCheck func(context.Context) error
 
 type Options struct {
-	Logger          *slog.Logger
-	RequestTimeout  time.Duration
-	MaxRequestBytes int64
-	Ready           ReadinessCheck
+	Logger             *slog.Logger
+	RequestTimeout     time.Duration
+	MaxRequestBytes    int64
+	Ready              ReadinessCheck
+	InternalCredential string
+	Chat               ChatService
 }
 
 func NewHandler(options Options) http.Handler {
@@ -65,8 +67,12 @@ func NewHandler(options Options) http.Handler {
 		}
 		writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
-	router.Get("/v1/models", modelsHandler)
-	router.Post("/v1/chat/completions", chatCompletionsSkeleton(maxRequestBytes))
+
+	router.Route("/v1", func(api chi.Router) {
+		api.Use(requireInternalCredential(options.InternalCredential))
+		api.Get("/models", modelsHandler)
+		api.With(requireForwardedIdentity).Post("/chat/completions", chatCompletionsHandler(maxRequestBytes, options.Chat))
+	})
 
 	return router
 }
@@ -83,42 +89,11 @@ func modelsHandler(w http.ResponseWriter, _ *http.Request) {
 	})
 }
 
-func chatCompletionsSkeleton(maxRequestBytes int64) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		reader := http.MaxBytesReader(w, r.Body, maxRequestBytes)
-		defer reader.Close()
-
-		var request chatCompletionRequest
-		decoder := json.NewDecoder(reader)
-		if err := decoder.Decode(&request); err != nil {
-			writeAPIError(w, http.StatusBadRequest, "invalid_request_error", "request body must be valid JSON")
-			return
-		}
-		if err := ensureJSONEOF(decoder); err != nil {
-			writeAPIError(w, http.StatusBadRequest, "invalid_request_error", "request body must contain one JSON object")
-			return
-		}
-		if request.Model == "" {
-			writeAPIError(w, http.StatusBadRequest, "invalid_request_error", "model is required")
-			return
-		}
-		if request.Model != modelID {
-			writeAPIError(w, http.StatusNotFound, "model_not_found", "requested model is not available")
-			return
-		}
-		if len(request.Messages) == 0 || string(request.Messages) == "null" {
-			writeAPIError(w, http.StatusBadRequest, "invalid_request_error", "messages are required")
-			return
-		}
-		writeAPIError(w, http.StatusNotImplemented, "not_implemented", "chat completion pipeline is not connected yet")
-	}
-}
-
 func ensureJSONEOF(decoder *json.Decoder) error {
 	var trailing any
 	if err := decoder.Decode(&trailing); !errors.Is(err, io.EOF) {
 		if err == nil {
-			return errors.New("trailing JSON value")
+			return errors.New("multiple JSON values are not allowed")
 		}
 		return err
 	}
@@ -232,12 +207,6 @@ type model struct {
 	Object  string `json:"object"`
 	Created int64  `json:"created"`
 	OwnedBy string `json:"owned_by"`
-}
-
-type chatCompletionRequest struct {
-	Model    string          `json:"model"`
-	Messages json.RawMessage `json:"messages"`
-	Stream   bool            `json:"stream,omitempty"`
 }
 
 type apiErrorEnvelope struct {
