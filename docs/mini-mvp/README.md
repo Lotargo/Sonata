@@ -11,9 +11,10 @@
 3. [`TECH_STACK.md`](./TECH_STACK.md) — выбранные технологии, библиотеки, модели, deployment и observability.
 4. [`contracts/INSTRUCTION_AND_MANIFEST.md`](./contracts/INSTRUCTION_AND_MANIFEST.md) — неизменяемые instructions и переключаемые manifests.
 5. [`contracts/OPENWEBUI_BOUNDARY.md`](./contracts/OPENWEBUI_BOUNDARY.md) — service credential, forwarded identity и SSE boundary.
-6. [`modules/EMOTION_MODULE.md`](./modules/EMOTION_MODULE.md) — детерминированный эмоциональный слой Sonata.
-7. [`decisions/OPENCODE_ZEN_PROVIDER.md`](./decisions/OPENCODE_ZEN_PROVIDER.md) — основной provider, общий master key и будущий BYOK.
-8. [`decisions/CONFIG_AND_SECRETS.md`](./decisions/CONFIG_AND_SECRETS.md) — единая загрузка конфигурации и секретов.
+6. [`deployment/RENDER_OPENWEBUI.md`](./deployment/RENDER_OPENWEBUI.md) — Render Blueprint, private Sonata API и live acceptance OpenWebUI.
+7. [`modules/EMOTION_MODULE.md`](./modules/EMOTION_MODULE.md) — детерминированный эмоциональный слой Sonata.
+8. [`decisions/OPENCODE_ZEN_PROVIDER.md`](./decisions/OPENCODE_ZEN_PROVIDER.md) — основной provider, общий master key и будущий BYOK.
+9. [`decisions/CONFIG_AND_SECRETS.md`](./decisions/CONFIG_AND_SECRETS.md) — единая загрузка конфигурации и секретов.
 
 ## Правила для агентов
 
@@ -39,6 +40,8 @@ docs/mini-mvp/
 ├── contracts/
 │   ├── INSTRUCTION_AND_MANIFEST.md
 │   └── OPENWEBUI_BOUNDARY.md
+├── deployment/
+│   └── RENDER_OPENWEBUI.md
 ├── modules/
 │   └── EMOTION_MODULE.md
 └── decisions/
