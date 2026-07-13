@@ -21,9 +21,10 @@ func advanceAffectiveState(state *AffectiveState, from time.Time, elapsed time.D
 		if time.Duration(index) < remainder {
 			step++
 		}
+		before := state.Clone()
 		advanceAffectiveEmotions(state, step, profile)
 		cursor = cursor.Add(step)
-		if err := updateComplexStateEvidence(state, step, cursor, profile); err != nil {
+		if err := updateComplexStateEvidence(state, before, step, cursor, profile); err != nil {
 			return 0, err
 		}
 	}
@@ -47,14 +48,15 @@ func boundedSubstepCount(elapsed, configuredStep time.Duration, maximum int) int
 	return int(count)
 }
 
-func updateComplexStateEvidence(state *AffectiveState, elapsed time.Duration, at time.Time, profile AffectiveProfile) error {
+func updateComplexStateEvidence(state *AffectiveState, before AffectiveState, elapsed time.Duration, at time.Time, profile AffectiveProfile) error {
 	if elapsed <= 0 {
 		return nil
 	}
 	ensureStateEvidence(state, profile)
 	for definitionIndex, definition := range profile.ComplexStates {
+		activeBefore := complexStateIndex(before.ComplexStates, definition.Kind) >= 0
 		activeIndex := complexStateIndex(state.ComplexStates, definition.Kind)
-		active := activeIndex >= 0
+		active := activeBefore
 		conditions := definition.EntryConditions
 		threshold := definition.EntryThreshold.Float64()
 		minimum := definition.MinEntryDuration
@@ -63,10 +65,15 @@ func updateComplexStateEvidence(state *AffectiveState, elapsed time.Duration, at
 			threshold = definition.ExitThreshold.Float64()
 			minimum = definition.MinExitDuration
 		}
-		score, err := conditionScore(*state, conditions)
+		beforeScore, err := conditionScore(before, conditions)
 		if err != nil {
-			return fmt.Errorf("evaluate %s conditions: %w", definition.Kind, err)
+			return fmt.Errorf("evaluate %s conditions before interval: %w", definition.Kind, err)
 		}
+		afterScore, err := conditionScore(*state, conditions)
+		if err != nil {
+			return fmt.Errorf("evaluate %s conditions after interval: %w", definition.Kind, err)
+		}
+		score := math.Min(beforeScore, afterScore)
 		evidence := &state.Evidence[definitionIndex].Evidence
 		if err := accumulateEvidence(evidence, score, threshold, elapsed, minimum, at); err != nil {
 			return fmt.Errorf("accumulate %s evidence: %w", definition.Kind, err)
@@ -152,12 +159,15 @@ func accumulateEvidence(
 	if evidence.ObservedFor == 0 {
 		evidence.ViolationArea = 0
 	}
-	observed := evidence.ObservedFor + elapsed
-	if observed > minimum {
-		observed = minimum
+	remaining := minimum - evidence.ObservedFor
+	effectiveElapsed := elapsed
+	if effectiveElapsed > remaining {
+		effectiveElapsed = remaining
 	}
-	positive := math.Min(capHours, evidence.PositiveArea.Float64()+score*elapsedHours)
-	violation := math.Min(capHours, evidence.ViolationArea.Float64()+(1-score)*elapsedHours)
+	observed := evidence.ObservedFor + effectiveElapsed
+	effectiveHours := effectiveElapsed.Hours()
+	positive := math.Min(capHours, evidence.PositiveArea.Float64()+score*effectiveHours)
+	violation := math.Min(capHours, evidence.ViolationArea.Float64()+(1-score)*effectiveHours)
 	positiveValue, err := NewNonNegative(positive)
 	if err != nil {
 		return err
