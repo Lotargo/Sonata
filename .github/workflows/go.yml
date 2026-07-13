@@ -85,9 +85,19 @@ jobs:
           staticcheck ./...
 
       - name: Run govulncheck
+        id: govulncheck
         run: |
           go install golang.org/x/vuln/cmd/govulncheck@latest
-          govulncheck ./...
+          set -o pipefail
+          govulncheck ./... 2>&1 | tee govulncheck.log
+
+      - name: Upload govulncheck diagnostics
+        if: failure() && steps.govulncheck.outcome == 'failure'
+        uses: actions/upload-artifact@v7
+        with:
+          name: govulncheck-log
+          path: govulncheck.log
+          retention-days: 7
 
       - name: Prepare optional file-backed secrets
         run: |
