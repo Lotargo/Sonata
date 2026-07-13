@@ -60,10 +60,8 @@ func (pipeline *DirectPipeline) Run(ctx context.Context, input DirectPipelineInp
 	if strings.TrimSpace(input.UserInput) == "" {
 		return DirectPipelineResult{}, errors.New("direct pipeline user input is required")
 	}
-	if err := validateArtifactRef(input.FinalInstruction, "synthesis final instruction"); err != nil {
-		return DirectPipelineResult{}, err
-	}
-	if err := validateManifestRef(input.FinalManifest); err != nil {
+	finalArtifacts := RoleArtifacts{Instruction: input.FinalInstruction, Manifest: input.FinalManifest}
+	if err := validateRoleArtifacts(RoleSynthesisFinal, finalArtifacts); err != nil {
 		return DirectPipelineResult{}, err
 	}
 
@@ -99,10 +97,7 @@ func (pipeline *DirectPipeline) Run(ctx context.Context, input DirectPipelineInp
 	if strings.TrimSpace(final.Content) == "" {
 		return result, errors.New("synthesis final returned empty content")
 	}
-	if err := validateRoleMetadataAgainstArtifacts(final.Metadata, RoleSynthesisFinal, RoleArtifacts{
-		Instruction: input.FinalInstruction,
-		Manifest:    input.FinalManifest,
-	}); err != nil {
+	if err := validateRoleMetadataAgainstArtifacts(final.Metadata, RoleSynthesisFinal, finalArtifacts); err != nil {
 		return result, fmt.Errorf("validate synthesis final metadata: %w", err)
 	}
 	result.Final = final
@@ -139,8 +134,15 @@ func validateRoleMetadata(metadata RoleMetadata, expected RuntimeRole) error {
 	if metadata.Latency < 0 {
 		return fmt.Errorf("role %s latency cannot be negative", expected)
 	}
+	spec, exists := RoleSpecFor(expected)
+	if !exists {
+		return fmt.Errorf("unknown runtime role %q", expected)
+	}
 	if err := validateArtifactRef(metadata.Instruction, "role instruction"); err != nil {
 		return err
+	}
+	if metadata.Instruction.ID != spec.InstructionID {
+		return fmt.Errorf("role %s instruction ID is %q, want %q", expected, metadata.Instruction.ID, spec.InstructionID)
 	}
 	if err := validateManifestRef(metadata.Manifest); err != nil {
 		return err
