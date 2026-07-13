@@ -38,8 +38,12 @@ func TestDirectPipelineRunsOnlyRouterAndSynthesisFinal(t *testing.T) {
 		calls = append(calls, RoleSynthesisFinal)
 		receivedFinal = input
 		return SynthesisFinalOutput{
-			Content:  "Hi.",
-			Metadata: successfulMetadata(RoleSynthesisFinal, "final-model"),
+			Content: "Hi.",
+			Metadata: metadataForArtifacts(
+				RoleSynthesisFinal,
+				"final-model",
+				RoleArtifacts{Instruction: input.Instruction, Manifest: input.Manifest},
+			),
 		}, nil
 	})
 	pipeline, err := NewDirectPipeline(router, final)
@@ -163,6 +167,13 @@ func successfulMetadata(role RuntimeRole, model string) RoleMetadata {
 		Instruction: testArtifactRef(string(role)),
 		Manifest:    testManifestRef("manifest." + string(role)),
 	}
+}
+
+func metadataForArtifacts(role RuntimeRole, model string, artifacts RoleArtifacts) RoleMetadata {
+	metadata := successfulMetadata(role, model)
+	metadata.Instruction = artifacts.Instruction
+	metadata.Manifest = artifacts.Manifest
+	return metadata
 }
 
 func testArtifactRef(id string) ArtifactRef {
