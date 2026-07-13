@@ -14,9 +14,10 @@
 6. [`deployment/RENDER_OPENWEBUI.md`](./deployment/RENDER_OPENWEBUI.md) — Render Blueprint, private Sonata API и live acceptance OpenWebUI.
 7. [`modules/EMOTION_MODULE.md`](./modules/EMOTION_MODULE.md) — границы и базовая интеграционная роль emotional layer.
 8. [`modules/AFFECTIVE_DYNAMICS.md`](./modules/AFFECTIVE_DYNAMICS.md) — принятая математическая и доменная спецификация affective dynamics engine; имеет приоритет над упрощённой transition-моделью `EMOTION_MODULE.md`.
-9. [`modules/AFFECTIVE_GOLDEN_TRAJECTORIES.md`](./modules/AFFECTIVE_GOLDEN_TRAJECTORIES.md) — versioned verification contract, реализованные semantic trajectories и незакрытые сценарии stage 07B.
-10. [`decisions/OPENCODE_ZEN_PROVIDER.md`](./decisions/OPENCODE_ZEN_PROVIDER.md) — основной provider, общий master key и будущий BYOK.
-11. [`decisions/CONFIG_AND_SECRETS.md`](./decisions/CONFIG_AND_SECRETS.md) — единая загрузка конфигурации и секретов.
+9. [`modules/RELATIONSHIP_RESPONSE.md`](./modules/RELATIONSHIP_RESPONSE.md) — bounded и versioned правило влияния отношений с пользователем на последующие emotional responses.
+10. [`modules/AFFECTIVE_GOLDEN_TRAJECTORIES.md`](./modules/AFFECTIVE_GOLDEN_TRAJECTORIES.md) — versioned verification contract, реализованные semantic trajectories и незакрытые сценарии stage 07B.
+11. [`decisions/OPENCODE_ZEN_PROVIDER.md`](./decisions/OPENCODE_ZEN_PROVIDER.md) — основной provider, общий master key и будущий BYOK.
+12. [`decisions/CONFIG_AND_SECRETS.md`](./decisions/CONFIG_AND_SECRETS.md) — единая загрузка конфигурации и секретов.
 
 ## Правила для агентов
 
@@ -47,6 +48,7 @@ docs/mini-mvp/
 ├── modules/
 │   ├── EMOTION_MODULE.md
 │   ├── AFFECTIVE_DYNAMICS.md
+│   ├── RELATIONSHIP_RESPONSE.md
 │   └── AFFECTIVE_GOLDEN_TRAJECTORIES.md
 └── decisions/
     ├── OPENCODE_ZEN_PROVIDER.md
