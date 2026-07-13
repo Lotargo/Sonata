@@ -83,6 +83,8 @@
 
 ## 03. HTTP API и OpenWebUI boundary
 
+Документ: [`contracts/OPENWEBUI_BOUNDARY.md`](./contracts/OPENWEBUI_BOUNDARY.md)
+
 - [x] Добавлены `net/http` и `chi` application server.
 - [x] Реализован graceful shutdown.
 - [x] Реализованы request ID, panic recovery, timeout и structured logging middleware.
@@ -90,12 +92,12 @@
 - [x] Реализован `GET /internal/health/ready`.
 - [x] Реализован `GET /v1/models` с моделью `sonata`.
 - [x] Реализован каркас `POST /v1/chat/completions`.
-- [ ] Реализован OpenAI-compatible SSE streaming.
+- [x] Реализован OpenAI-compatible SSE streaming.
 - [ ] Отмена клиентского запроса отменяет весь cognitive pipeline.
 - [ ] Sonata API развёртывается как private service.
-- [ ] Проверяется внутренний credential OpenWebUI → Sonata.
-- [ ] Forwarded OpenWebUI user headers принимаются только после проверки service credential.
-- [ ] Стабильно связываются OpenWebUI user, chat и message IDs.
+- [x] Проверяется внутренний credential OpenWebUI → Sonata.
+- [x] Forwarded OpenWebUI user headers принимаются только после проверки service credential.
+- [x] Стабильно связываются OpenWebUI user, chat и message IDs.
 - [ ] Встроенная memory OpenWebUI отключена.
 - [ ] Direct provider models визуально и логически отделены от модели Sonata.
 
