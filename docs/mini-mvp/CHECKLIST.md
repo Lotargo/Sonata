@@ -203,14 +203,17 @@
 ### 07B. Affective dynamics v1
 
 - [x] Проведена археология ключевых механик Sentio Engine и зафиксирована accepted design specification.
-- [ ] Реализованы bounded numeric primitives с явными domain types.
-- [ ] Реализован typed OCEAN personality profile и per-emotion personality influence.
-- [ ] Реализован physiology state: fatigue, arousal, energy, stress load и stability.
-- [ ] Реализованы разные excitation, recovery, persistence и ceiling для каждой эмоции.
-- [ ] Реализованы deterministic cross-emotion excitation/inhibition rules.
-- [ ] Реализованы typed drives и их влияние на эмоциональную динамику без autonomous actions.
-- [ ] Реализованы temporal evidence accumulators без raw message text.
-- [ ] Реализованы complex-state entry/exit conditions, duration и hysteresis.
+- [x] Реализованы bounded numeric primitives с явными domain types.
+- [x] Реализован typed OCEAN personality profile и полная per-emotion personality influence matrix.
+- [x] Реализован typed physiology state и полная per-emotion physiology influence matrix.
+- [x] В versioned profile зафиксированы разные excitation, recovery, persistence, ceiling и delta limits каждой эмоции.
+- [x] Реализована versioned deterministic cross-emotion excitation/inhibition matrix со стабильным порядком.
+- [x] Реализованы typed drive definitions, stable IDs, satisfaction maps и emotion effect maps без autonomous actions.
+- [ ] Drive satisfaction и urgency изменяют последующие transitions.
+- [x] Реализованы temporal evidence accumulators без raw message text.
+- [x] Реализованы versioned complex-state recipes: entry/exit conditions, duration, hysteresis и typed effects.
+- [x] `AffectiveState`, active complex states и evidence сохраняют profile/definition versions.
+- [x] Strict startup validation отвергает неполные matrices, invalid signals, неустойчивый порядок, дубли IDs и invalid hysteresis.
 - [ ] Active complex states изменяют последующие transitions, а не только report labels.
 - [ ] Depressive state подавляет joy response и меняет sadness/fatigue recovery согласно versioned config.
 - [ ] Реализована чистая deterministic transition function и стабильный iteration order.
