@@ -38,7 +38,7 @@ type ChatResult struct {
 	FinishReason string
 }
 
-func chatCompletionsHandler(maxRequestBytes int64, chat ChatService) http.HandlerFunc {
+func chatCompletionsHandler(maxRequestBytes int64, chat ChatService, outputFilter OutputFilterFactory) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		request, ok := decodeChatCompletionRequest(w, r, maxRequestBytes)
 		if !ok {
@@ -56,10 +56,10 @@ func chatCompletionsHandler(maxRequestBytes int64, chat ChatService) http.Handle
 
 		input := ChatRequest{Identity: identity, Model: request.Model, Messages: request.Messages}
 		if request.Stream {
-			streamChatCompletion(w, r, chat, input)
+			streamChatCompletion(w, r, chat, input, outputFilter)
 			return
 		}
-		writeChatCompletion(w, r, chat, input)
+		writeChatCompletion(w, r, chat, input, outputFilter)
 	}
 }
 
@@ -98,7 +98,7 @@ func decodeChatCompletionRequest(w http.ResponseWriter, r *http.Request, maxRequ
 	return request, true
 }
 
-func streamChatCompletion(w http.ResponseWriter, r *http.Request, chat ChatService, input ChatRequest) {
+func streamChatCompletion(w http.ResponseWriter, r *http.Request, chat ChatService, input ChatRequest, outputFilter OutputFilterFactory) {
 	flusher, ok := w.(http.Flusher)
 	if !ok {
 		writeAPIError(w, http.StatusInternalServerError, "streaming_unsupported", "response streaming is unavailable")
@@ -120,17 +120,25 @@ func streamChatCompletion(w http.ResponseWriter, r *http.Request, chat ChatServi
 		return
 	}
 
-	result, err := chat.Complete(r.Context(), input, func(delta ChatDelta) error {
-		if err := r.Context().Err(); err != nil {
-			return err
-		}
-		if delta.Content == "" {
+	filter := newOutputFilter(outputFilter)
+	writeContent := func(content string) error {
+		if content == "" {
 			return nil
 		}
 		return writeSSEJSON(w, flusher, chatCompletionChunk{
 			ID: completionID, Object: "chat.completion.chunk", Created: created, Model: modelID,
-			Choices: []chatCompletionChunkChoice{{Index: 0, Delta: chatCompletionDelta{Content: delta.Content}}},
+			Choices: []chatCompletionChunkChoice{{Index: 0, Delta: chatCompletionDelta{Content: content}}},
 		})
+	}
+	result, err := chat.Complete(r.Context(), input, func(delta ChatDelta) error {
+		if err := r.Context().Err(); err != nil {
+			return err
+		}
+		safe, err := filter.Push(delta.Content)
+		if err != nil {
+			return err
+		}
+		return writeContent(safe)
 	})
 	if err != nil {
 		if r.Context().Err() != nil {
@@ -138,6 +146,15 @@ func streamChatCompletion(w http.ResponseWriter, r *http.Request, chat ChatServi
 		}
 		_ = writeSSEJSON(w, flusher, apiErrorEnvelope{Error: apiError{Message: publicChatError(err), Type: "chat_completion_failed"}})
 		_ = writeSSEDone(w, flusher)
+		return
+	}
+	tail, err := filter.Close()
+	if err != nil {
+		_ = writeSSEJSON(w, flusher, apiErrorEnvelope{Error: apiError{Message: publicChatError(err), Type: "chat_completion_failed"}})
+		_ = writeSSEDone(w, flusher)
+		return
+	}
+	if err := writeContent(tail); err != nil {
 		return
 	}
 
@@ -154,13 +171,18 @@ func streamChatCompletion(w http.ResponseWriter, r *http.Request, chat ChatServi
 	_ = writeSSEDone(w, flusher)
 }
 
-func writeChatCompletion(w http.ResponseWriter, r *http.Request, chat ChatService, input ChatRequest) {
+func writeChatCompletion(w http.ResponseWriter, r *http.Request, chat ChatService, input ChatRequest, outputFilter OutputFilterFactory) {
+	filter := newOutputFilter(outputFilter)
 	var content strings.Builder
 	result, err := chat.Complete(r.Context(), input, func(delta ChatDelta) error {
 		if err := r.Context().Err(); err != nil {
 			return err
 		}
-		_, writeErr := content.WriteString(delta.Content)
+		safe, err := filter.Push(delta.Content)
+		if err != nil {
+			return err
+		}
+		_, writeErr := content.WriteString(safe)
 		return writeErr
 	})
 	if err != nil {
@@ -176,6 +198,13 @@ func writeChatCompletion(w http.ResponseWriter, r *http.Request, chat ChatServic
 		writeAPIError(w, status, errorType, publicChatError(err))
 		return
 	}
+	tail, err := filter.Close()
+	if err != nil {
+		writeAPIError(w, http.StatusBadGateway, "chat_completion_failed", publicChatError(err))
+		return
+	}
+	_, _ = content.WriteString(tail)
+
 	finishReason := result.FinishReason
 	if finishReason == "" {
 		finishReason = "stop"
