@@ -155,6 +155,7 @@ func (c *RuntimeConfig) Validate(profile string) error {
 		add("emotion.relationship.global and per_user cannot both be enabled in mini MVP")
 	}
 	problems = append(problems, c.Emotion.ValidateAffective()...)
+	problems = append(problems, c.Emotion.ValidateAffectiveInitial()...)
 
 	if c.Limits.RequestBytes <= 0 || c.Limits.ManifestBytes <= 0 || c.Limits.ContextTokens <= 0 || c.Limits.ActiveFullPipelines <= 0 {
 		add("all core limits must be positive")
