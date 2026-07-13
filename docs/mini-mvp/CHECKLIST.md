@@ -132,13 +132,13 @@
 
 Документ: [`contracts/INSTRUCTION_AND_MANIFEST.md`](./contracts/INSTRUCTION_AND_MANIFEST.md)
 
-- [ ] Определена директория protected instructions.
-- [ ] Определена директория protected default manifests.
+- [x] Определена директория protected instructions.
+- [x] Определена директория protected default manifests.
 - [ ] Перенесены и смыслово адаптированы инструкции из vanilla Sonata.
-- [ ] Удалён язык отдельных личностей и независимых агентов.
-- [ ] Каждая instruction имеет stable ID, version и hash.
-- [ ] Каждый default manifest имеет stable ID, version и hash.
-- [ ] Реализован strict XML loader protected artifacts.
+- [x] Удалён язык отдельных личностей и независимых агентов.
+- [x] Каждая instruction имеет stable ID, version и hash.
+- [x] Каждый default manifest имеет stable ID, version и hash.
+- [x] Реализован strict XML loader protected artifacts.
 - [ ] Реализован typed prompt compiler.
 - [ ] Реализован manifest resolver:
   - [ ] chat user manifest;
