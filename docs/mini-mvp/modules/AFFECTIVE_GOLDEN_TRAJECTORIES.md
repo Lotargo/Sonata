@@ -2,7 +2,8 @@
 
 > Статус: verification contract для stage 07B  
 > Profile: `sonata-affective-v1.0.0`  
-> Основной design contract: [`AFFECTIVE_DYNAMICS.md`](./AFFECTIVE_DYNAMICS.md)
+> Основной design contract: [`AFFECTIVE_DYNAMICS.md`](./AFFECTIVE_DYNAMICS.md)  
+> Relationship rule: [`RELATIONSHIP_RESPONSE.md`](./RELATIONSHIP_RESPONSE.md)
 
 ## 1. Назначение
 
@@ -117,13 +118,17 @@ baseline
 
 ### 5.1. Same stimulus from trusted and untrusted user
 
-**Статус: blocked by domain implementation.**
+**Статус: ready for implementation.**
 
-`RelationshipState` сейчас изменяется после stimuli и участвует в complex-state conditions, но ещё не входит в effective stimulus multiplier.
+Bounded и versioned правило зафиксировано в [`RELATIONSHIP_RESPONSE.md`](./RELATIONSHIP_RESPONSE.md):
 
-Нельзя считать этот сценарий реализованным только потому, что два states имеют разные relationship values. Должен отличаться именно последующий emotional response на одинаковый stimulus.
+- rule ID `relationship-response-v1`;
+- profile `sonata-affective-v1.0.0`;
+- relationship snapshot читается до применения relationship effects текущего stimulus;
+- per-emotion modifier ограничен диапазоном `[0.50, 1.50]`;
+- изменение формулы или коэффициентов требует нового rule ID и profile version bump.
 
-Перед реализацией необходимо зафиксировать bounded и versioned relationship-response rule. Не допускается добавлять произвольные hardcoded коэффициенты только ради прохождения теста.
+Следующий implementation increment должен доказать, что одинаковый stimulus создаёт разный последующий emotional response именно из-за различий relationship state, а не только потому, что два результата содержат разные relationship values.
 
 ### 5.2. Replay after optimistic lock conflict
 
