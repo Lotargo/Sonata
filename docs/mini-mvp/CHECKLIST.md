@@ -180,19 +180,20 @@
 
 Документ: [`modules/EMOTION_MODULE.md`](./modules/EMOTION_MODULE.md)
 
-- [ ] Реализованы typed emotion и relationship state.
-- [ ] Реализован baseline profile из config.
-- [ ] Реализован deterministic stimulus extractor.
-- [ ] Реализованы bounded transitions.
-- [ ] Реализованы opposition/dominance rules.
-- [ ] Реализован lazy decay.
-- [ ] Реализован versioned state update.
-- [ ] Реализован компактный `EmotionReport`.
-- [ ] State изолирован по `user_id`.
-- [ ] Модуль не использует LLM.
-- [ ] Модуль не имеет tools и provider credentials.
-- [ ] Emotional state не может менять security policy и memory facts.
-- [ ] Добавлены tests на decay, bounds, conflict rules и concurrent updates.
+- [x] Реализованы typed emotion и relationship state.
+- [x] Реализован baseline profile из config.
+- [x] Реализован deterministic stimulus extractor.
+- [x] Реализованы bounded transitions.
+- [x] Реализованы opposition/dominance rules.
+- [x] Реализован lazy decay.
+- [x] Реализован versioned state update.
+- [x] Реализован компактный `EmotionReport`.
+- [x] State изолирован по `user_id`.
+- [x] Модуль не использует LLM.
+- [x] Модуль не имеет tools и provider credentials.
+- [x] Emotional state не может менять security policy и memory facts.
+- [x] Добавлены tests на decay, bounds, conflict rules и concurrent updates.
+- [ ] Emotional module подключён к HTTP request flow и передаёт один versioned report всем cognitive roles.
 
 **Критерий этапа:** одинаковая последовательность событий даёт воспроизводимое bounded состояние без LLM.
 
