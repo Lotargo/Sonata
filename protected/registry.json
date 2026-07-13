@@ -1,0 +1,257 @@
+{
+  "version": 1,
+  "artifacts": [
+    {
+      "kind": "instruction",
+      "id": "router",
+      "version": 1,
+      "path": "instructions/router.xml",
+      "sha256": "fdb936b7cd4503a71c46f61e89f0c0dfb1a199e361cacb06cce42dc0ecd0378e"
+    },
+    {
+      "kind": "instruction",
+      "id": "prism.efficiency.raw",
+      "version": 1,
+      "path": "instructions/prism.efficiency.raw.xml",
+      "sha256": "3e37b6c33862e0a770fadc530d93f183d2169ca4139ddea0e6d1897999e88799"
+    },
+    {
+      "kind": "instruction",
+      "id": "prism.creativity.raw",
+      "version": 1,
+      "path": "instructions/prism.creativity.raw.xml",
+      "sha256": "683da585a9f2a7af6e327e1a92891c408956f228a0c4535dce2aacbacaa75e84"
+    },
+    {
+      "kind": "instruction",
+      "id": "prism.pragmatism.raw",
+      "version": 1,
+      "path": "instructions/prism.pragmatism.raw.xml",
+      "sha256": "13889b0921f43a5b2ffacef29036ffb0d15f80a9f1df086ebeebd315fd127755"
+    },
+    {
+      "kind": "instruction",
+      "id": "prism.philosophy.raw",
+      "version": 1,
+      "path": "instructions/prism.philosophy.raw.xml",
+      "sha256": "550b3b54182aafc68158f52a13f5aecaa993cd0cebbfbe9eb67e6066cb6a52d7"
+    },
+    {
+      "kind": "instruction",
+      "id": "prism.ethics.raw",
+      "version": 1,
+      "path": "instructions/prism.ethics.raw.xml",
+      "sha256": "6ae41d35126dd4793fec1b5bd558e6cae5f0658987f369430d632b23be726c90"
+    },
+    {
+      "kind": "instruction",
+      "id": "prism.efficiency.critical",
+      "version": 1,
+      "path": "instructions/prism.efficiency.critical.xml",
+      "sha256": "243f22cc4215870b4b80b1979e942f5f68b717118ad8f716c7dcd829a57f31b6"
+    },
+    {
+      "kind": "instruction",
+      "id": "prism.creativity.critical",
+      "version": 1,
+      "path": "instructions/prism.creativity.critical.xml",
+      "sha256": "87cc096f817fc65ee9dc33ea26d3ff814d6d99d0d2f117249498aa28ebc127ed"
+    },
+    {
+      "kind": "instruction",
+      "id": "prism.pragmatism.critical",
+      "version": 1,
+      "path": "instructions/prism.pragmatism.critical.xml",
+      "sha256": "3263f7b89deb6cf156b7a436a527d9b2220d3c24e099a7ded21a66f7c6a4cd85"
+    },
+    {
+      "kind": "instruction",
+      "id": "prism.philosophy.critical",
+      "version": 1,
+      "path": "instructions/prism.philosophy.critical.xml",
+      "sha256": "a11e9e189ea7b59a19e457dd1d44eb941727334ac1ba1ea69f50fc5ccf925a00"
+    },
+    {
+      "kind": "instruction",
+      "id": "prism.ethics.critical",
+      "version": 1,
+      "path": "instructions/prism.ethics.critical.xml",
+      "sha256": "d07b580b4eb4e29b96609e7c4abf984b898fe4412a51fa48046754c630f7a1cc"
+    },
+    {
+      "kind": "instruction",
+      "id": "prism.efficiency.summary",
+      "version": 1,
+      "path": "instructions/prism.efficiency.summary.xml",
+      "sha256": "31614c908b42b34e0b7abd95fd68bc508b1ba89a8c94650fb564ed391fd9c18f"
+    },
+    {
+      "kind": "instruction",
+      "id": "prism.creativity.summary",
+      "version": 1,
+      "path": "instructions/prism.creativity.summary.xml",
+      "sha256": "4d0e2bb3741981f8da826da1657a9965b40c31f1e1e7ead1532601de1474efbe"
+    },
+    {
+      "kind": "instruction",
+      "id": "prism.pragmatism.summary",
+      "version": 1,
+      "path": "instructions/prism.pragmatism.summary.xml",
+      "sha256": "860f8428b429e4cf006379764099e1e2d97682ddff9b99a65b4a7d648b8c77d9"
+    },
+    {
+      "kind": "instruction",
+      "id": "prism.philosophy.summary",
+      "version": 1,
+      "path": "instructions/prism.philosophy.summary.xml",
+      "sha256": "e5fc2916c8e67611f5239e8f9ab0261518bcfd8010262689a060e74ab92a411a"
+    },
+    {
+      "kind": "instruction",
+      "id": "prism.ethics.summary",
+      "version": 1,
+      "path": "instructions/prism.ethics.summary.xml",
+      "sha256": "87a2fca6f12df4cad88b8f5ed34f3ff2bae6aa2ff89353e4fc720722d9c8c078"
+    },
+    {
+      "kind": "instruction",
+      "id": "synthesis.tooling",
+      "version": 1,
+      "path": "instructions/synthesis.tooling.xml",
+      "sha256": "9cf8c79e46bb867892ee13d61ca3ccebb7b322dad5ee44ed4d01d7a03fda9a09"
+    },
+    {
+      "kind": "instruction",
+      "id": "synthesis.final",
+      "version": 1,
+      "path": "instructions/synthesis.final.xml",
+      "sha256": "1e959d8636bc0c983cbccc2ab2bce9f06b41e1b21c63046414c919fb2fb57ed0"
+    },
+    {
+      "kind": "default_manifest",
+      "id": "manifest.router.default",
+      "version": 1,
+      "path": "manifests/manifest.router.default.xml",
+      "sha256": "a3c51f8598f4ba84cadbba0e1364216d0f262f7f40fab0ab74f2f69a37706aa5"
+    },
+    {
+      "kind": "default_manifest",
+      "id": "manifest.prism.efficiency.raw.default",
+      "version": 1,
+      "path": "manifests/manifest.prism.efficiency.raw.default.xml",
+      "sha256": "597b0b3ccea711ab1cb3e86aab9f6fbac9364319852ec9a5b63e2796d6d65c9c"
+    },
+    {
+      "kind": "default_manifest",
+      "id": "manifest.prism.creativity.raw.default",
+      "version": 1,
+      "path": "manifests/manifest.prism.creativity.raw.default.xml",
+      "sha256": "dbfa09d8f22aed7bd1198e05ba26763f6c785cf8541af8da1f6c94c83482ad49"
+    },
+    {
+      "kind": "default_manifest",
+      "id": "manifest.prism.pragmatism.raw.default",
+      "version": 1,
+      "path": "manifests/manifest.prism.pragmatism.raw.default.xml",
+      "sha256": "0cf79a858a2a459d4a317627c72ce2600ce9bb74a1f130f3c1f81d43fa97155d"
+    },
+    {
+      "kind": "default_manifest",
+      "id": "manifest.prism.philosophy.raw.default",
+      "version": 1,
+      "path": "manifests/manifest.prism.philosophy.raw.default.xml",
+      "sha256": "cf791aa480afb8ad695f7f8cdda50d087e74205f1f3df06d603e7f10a6f9b113"
+    },
+    {
+      "kind": "default_manifest",
+      "id": "manifest.prism.ethics.raw.default",
+      "version": 1,
+      "path": "manifests/manifest.prism.ethics.raw.default.xml",
+      "sha256": "6b2f7a00be88fc1c84058127cec294897426ed03283701c532f740ac8f37dace"
+    },
+    {
+      "kind": "default_manifest",
+      "id": "manifest.prism.efficiency.critical.default",
+      "version": 1,
+      "path": "manifests/manifest.prism.efficiency.critical.default.xml",
+      "sha256": "6b4987696584a82a9cbe7ff18c769d950fc679e9723de1a88bbf5d72447912f9"
+    },
+    {
+      "kind": "default_manifest",
+      "id": "manifest.prism.creativity.critical.default",
+      "version": 1,
+      "path": "manifests/manifest.prism.creativity.critical.default.xml",
+      "sha256": "ef3125e76deb5497f8494d92c317805834712a85ff17d5b4ba7e3e2d06b492bf"
+    },
+    {
+      "kind": "default_manifest",
+      "id": "manifest.prism.pragmatism.critical.default",
+      "version": 1,
+      "path": "manifests/manifest.prism.pragmatism.critical.default.xml",
+      "sha256": "3da771ea7eeb7aedc403d10d2613026a4c861db9a125aa7cda7260f32d4a8fdf"
+    },
+    {
+      "kind": "default_manifest",
+      "id": "manifest.prism.philosophy.critical.default",
+      "version": 1,
+      "path": "manifests/manifest.prism.philosophy.critical.default.xml",
+      "sha256": "9441eab1d76ef834445807951f11711d7f6e497f9ae722d73c01b66085a60d9f"
+    },
+    {
+      "kind": "default_manifest",
+      "id": "manifest.prism.ethics.critical.default",
+      "version": 1,
+      "path": "manifests/manifest.prism.ethics.critical.default.xml",
+      "sha256": "7e8c1b42e537b1ca4c7ecc1f15ccd1ab023ccb57002f41af4e69903fb60015ab"
+    },
+    {
+      "kind": "default_manifest",
+      "id": "manifest.prism.efficiency.summary.default",
+      "version": 1,
+      "path": "manifests/manifest.prism.efficiency.summary.default.xml",
+      "sha256": "f6e6a9e391f1ac7845b1375d10b0b915899ff2d07ba9fefe07c65d30b4b672f4"
+    },
+    {
+      "kind": "default_manifest",
+      "id": "manifest.prism.creativity.summary.default",
+      "version": 1,
+      "path": "manifests/manifest.prism.creativity.summary.default.xml",
+      "sha256": "5d1bf61e72e4ed8c9b31a5e7b6f1adda89aeecbe8a1175354b661531467913e2"
+    },
+    {
+      "kind": "default_manifest",
+      "id": "manifest.prism.pragmatism.summary.default",
+      "version": 1,
+      "path": "manifests/manifest.prism.pragmatism.summary.default.xml",
+      "sha256": "e9c1a9f3780d77b2908ab74218b8ceb05a72cff7f4e8343c5309dda820ed916e"
+    },
+    {
+      "kind": "default_manifest",
+      "id": "manifest.prism.philosophy.summary.default",
+      "version": 1,
+      "path": "manifests/manifest.prism.philosophy.summary.default.xml",
+      "sha256": "0dc61e15c5cc7ae372378f60506fc136d0855ac2312ee12796963edac61bdc43"
+    },
+    {
+      "kind": "default_manifest",
+      "id": "manifest.prism.ethics.summary.default",
+      "version": 1,
+      "path": "manifests/manifest.prism.ethics.summary.default.xml",
+      "sha256": "129ad4c6b09f4c21d5b92fbfe22f3f2b373f83268736a9f18eac1e964f908c59"
+    },
+    {
+      "kind": "default_manifest",
+      "id": "manifest.synthesis.tooling.default",
+      "version": 1,
+      "path": "manifests/manifest.synthesis.tooling.default.xml",
+      "sha256": "a0f5c431e83b9f4e39201b4570009c841cd2b63f29e0389b6015ec46e07ed5de"
+    },
+    {
+      "kind": "default_manifest",
+      "id": "manifest.synthesis.final.default",
+      "version": 1,
+      "path": "manifests/manifest.synthesis.final.default.xml",
+      "sha256": "b2ab7b2c7cd705815256407e520ed74c07730d41bdb6d7ddbb5754e21efc5e28"
+    }
+  ]
+}
