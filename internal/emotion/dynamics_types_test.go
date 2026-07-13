@@ -91,8 +91,8 @@ func TestComplexStateAndEvidenceValidation(t *testing.T) {
 
 	now := time.Date(2026, time.July, 13, 12, 0, 0, 0, time.UTC)
 	states := []ComplexState{
-		{Kind: ComplexStateChronicStress, Activation: Unit(0.4), ActiveSince: now},
-		{Kind: ComplexStateDepressive, Activation: Unit(0.7), ActiveSince: now},
+		{Kind: ComplexStateChronicStress, DefinitionID: "state-chronic-stress-v1", Activation: Unit(0.4), ActiveSince: now},
+		{Kind: ComplexStateDepressive, DefinitionID: "state-depressive-v1", Activation: Unit(0.7), ActiveSince: now},
 	}
 	if err := ValidateComplexStates(states); err != nil {
 		t.Fatalf("validate complex states: %v", err)
@@ -100,7 +100,8 @@ func TestComplexStateAndEvidenceValidation(t *testing.T) {
 
 	evidence := []StateEvidence{
 		{
-			Kind: ComplexStateChronicStress,
+			Kind:         ComplexStateChronicStress,
+			DefinitionID: "state-chronic-stress-v1",
 			Evidence: EvidenceAccumulator{
 				PositiveArea:  NonNegative(4.5),
 				ViolationArea: NonNegative(0.2),
@@ -109,7 +110,8 @@ func TestComplexStateAndEvidenceValidation(t *testing.T) {
 			},
 		},
 		{
-			Kind: ComplexStateDepressive,
+			Kind:         ComplexStateDepressive,
+			DefinitionID: "state-depressive-v1",
 			Evidence: EvidenceAccumulator{
 				PositiveArea:  NonNegative(8.5),
 				ViolationArea: 0,
@@ -123,12 +125,12 @@ func TestComplexStateAndEvidenceValidation(t *testing.T) {
 	}
 }
 
-func TestActiveComplexStateRequiresTimestamp(t *testing.T) {
+func TestActiveComplexStateRequiresVersionAndTimestamp(t *testing.T) {
 	t.Parallel()
 
 	state := ComplexState{Kind: ComplexStateDepressive, Activation: Unit(0.5)}
 	if err := state.Validate(); err == nil {
-		t.Fatal("expected active complex state without timestamp to be rejected")
+		t.Fatal("expected active complex state without definition ID and timestamp to be rejected")
 	}
 }
 
