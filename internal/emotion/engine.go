@@ -214,7 +214,11 @@ var opposites = map[Emotion]Emotion{
 func (engine *Engine) applyStimulus(state *State, stimulus Stimulus) {
 	effect := transitionEffects[stimulus.Kind]
 	scale := stimulus.Intensity * stimulus.Confidence
-	for emotion, weight := range effect.emotions {
+	for _, emotion := range allEmotions {
+		weight, exists := effect.emotions[emotion]
+		if !exists {
+			continue
+		}
 		delta := clampSigned(weight*scale, engine.profile.MaxDelta)
 		state.Emotions.Set(emotion, clamp01(state.Emotions.Get(emotion)+delta))
 		if delta > 0 {
