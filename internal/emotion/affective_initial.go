@@ -158,12 +158,7 @@ func NewBaselineAffectiveStateFromProfiles(
 	}
 	drives := make([]DriveState, 0, len(initial.Drives))
 	for _, drive := range initial.Drives {
-		drives = append(drives, DriveState{
-			Kind:         drive.Kind,
-			Level:        drive.Level,
-			Satisfaction: drive.Satisfaction,
-			Urgency:      drive.Urgency,
-		})
+		drives = append(drives, DriveState(drive))
 	}
 	state := AffectiveState{
 		Key:            key,
