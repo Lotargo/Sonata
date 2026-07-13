@@ -8,29 +8,6 @@ import (
 	"time"
 )
 
-func advanceAffectiveState(state *AffectiveState, from time.Time, elapsed time.Duration, profile AffectiveProfile) (int, error) {
-	if elapsed <= 0 {
-		return 0, nil
-	}
-	count := boundedSubstepCount(elapsed, profile.IntegrationStep, profile.MaxSubsteps)
-	base := elapsed / time.Duration(count)
-	remainder := elapsed % time.Duration(count)
-	cursor := from.UTC()
-	for index := 0; index < count; index++ {
-		step := base
-		if time.Duration(index) < remainder {
-			step++
-		}
-		before := state.Clone()
-		advanceAffectiveEmotions(state, step, profile)
-		cursor = cursor.Add(step)
-		if err := updateComplexStateEvidence(state, before, step, cursor, profile); err != nil {
-			return 0, err
-		}
-	}
-	return count, nil
-}
-
 func boundedSubstepCount(elapsed, configuredStep time.Duration, maximum int) int {
 	if elapsed <= 0 {
 		return 0
