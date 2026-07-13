@@ -41,12 +41,14 @@ func relationshipResponse(
 		return 0, fmt.Errorf("missing relationship response weights for %s", emotion)
 	}
 
-	support := clampFloat((
-		relationship.Attachment+
+	support := clampFloat(
+		(relationship.Attachment+
 			relationship.Openness+
 			relationship.ConfidenceInUser+
-			relationship.PerceivedSafety,
-	)/4, 0, 1)
+			relationship.PerceivedSafety)/4,
+		0,
+		1,
+	)
 	strain := clampFloat(
 		0.60*relationship.Tension+0.40*relationship.UnresolvedHurt,
 		0,
