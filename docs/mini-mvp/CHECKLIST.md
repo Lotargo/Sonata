@@ -134,7 +134,7 @@
 
 - [x] Определена директория protected instructions.
 - [x] Определена директория protected default manifests.
-- [ ] Перенесены и смыслово адаптированы инструкции из vanilla Sonata.
+- [x] Перенесены и смыслово адаптированы инструкции из vanilla Sonata.
 - [x] Удалён язык отдельных личностей и независимых агентов.
 - [x] Каждая instruction имеет stable ID, version и hash.
 - [x] Каждый default manifest имеет stable ID, version и hash.
@@ -157,9 +157,9 @@
 
 ## 06. Cognitive state machine
 
-- [ ] Определены typed input/output contracts всех runtime roles.
-- [ ] Определён JSON contract Router: только `direct | full`.
-- [ ] Router не имеет tools, RAG, EmotionReport и права менять модели.
+- [x] Определены typed input/output contracts всех runtime roles.
+- [x] Определён JSON contract Router: только `direct | full`.
+- [x] Router не имеет tools, RAG, EmotionReport и права менять модели.
 - [ ] Реализован direct route.
 - [ ] Реализован full route из 18 LLM-вызовов.
 - [ ] Raw-фаза запускает пять призм параллельно.
