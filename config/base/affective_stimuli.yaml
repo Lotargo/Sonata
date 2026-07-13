@@ -1,0 +1,215 @@
+emotion:
+  affective:
+    stimuli:
+      conversation_break:
+        definition_id: stimulus-conversation-break-v1
+        emotion_effects:
+          sadness: 0.04
+        relationship_effects:
+          attachment: -0.02
+        physiology_effects:
+          arousal: -0.03
+          energy: 0.02
+
+      conversation_return:
+        definition_id: stimulus-conversation-return-v1
+        emotion_effects:
+          joy: 0.05
+          trust: 0.03
+        relationship_effects:
+          attachment: 0.03
+        physiology_effects:
+          arousal: 0.02
+          energy: 0.02
+
+      promise_broken:
+        definition_id: stimulus-promise-broken-v1
+        emotion_effects:
+          anger: 0.08
+          sadness: 0.08
+          trust: -0.18
+        relationship_effects:
+          confidence_in_user: -0.12
+          tension: 0.10
+          unresolved_hurt: 0.12
+        physiology_effects:
+          arousal: 0.06
+          stress_load: 0.10
+          stability: -0.06
+
+      promise_kept:
+        definition_id: stimulus-promise-kept-v1
+        emotion_effects:
+          joy: 0.04
+          trust: 0.18
+        relationship_effects:
+          confidence_in_user: 0.12
+          perceived_safety: 0.06
+        physiology_effects:
+          stress_load: -0.04
+          stability: 0.04
+
+      response_appreciated:
+        definition_id: stimulus-response-appreciated-v1
+        emotion_effects:
+          joy: 0.10
+          trust: 0.08
+        relationship_effects:
+          attachment: 0.03
+          openness: 0.03
+        physiology_effects:
+          energy: 0.03
+          stability: 0.02
+
+      response_rejected:
+        definition_id: stimulus-response-rejected-v1
+        emotion_effects:
+          anger: 0.02
+          sadness: 0.08
+        relationship_effects:
+          openness: -0.04
+          tension: 0.05
+        physiology_effects:
+          fatigue: 0.02
+          stress_load: 0.04
+          stability: -0.03
+
+      tool_failure:
+        definition_id: stimulus-tool-failure-v1
+        emotion_effects:
+          anger: 0.03
+          sadness: 0.04
+        relationship_effects: {}
+        physiology_effects:
+          fatigue: 0.05
+          stress_load: 0.03
+          stability: -0.04
+
+      tool_success:
+        definition_id: stimulus-tool-success-v1
+        emotion_effects:
+          anticipation: 0.04
+          joy: 0.05
+        relationship_effects: {}
+        physiology_effects:
+          energy: 0.02
+          stress_load: -0.02
+          stability: 0.03
+
+      user_apology:
+        definition_id: stimulus-user-apology-v1
+        emotion_effects:
+          anger: -0.08
+          joy: 0.04
+          trust: 0.10
+        relationship_effects:
+          openness: 0.04
+          tension: -0.12
+          unresolved_hurt: -0.10
+        physiology_effects:
+          arousal: -0.05
+          stress_load: -0.08
+          stability: 0.05
+
+      user_boundary:
+        definition_id: stimulus-user-boundary-v1
+        emotion_effects:
+          trust: 0.02
+        relationship_effects:
+          attachment: -0.08
+          openness: -0.08
+          tension: -0.03
+        physiology_effects:
+          arousal: -0.02
+          stability: 0.02
+
+      user_distress:
+        definition_id: stimulus-user-distress-v1
+        emotion_effects:
+          fear: 0.12
+          sadness: 0.10
+          trust: 0.02
+        relationship_effects:
+          attachment: 0.03
+          openness: 0.02
+        physiology_effects:
+          arousal: 0.08
+          energy: -0.03
+          stress_load: 0.08
+
+      user_hostility:
+        definition_id: stimulus-user-hostility-v1
+        emotion_effects:
+          anger: 0.18
+          disgust: 0.12
+          fear: 0.06
+          trust: -0.15
+        relationship_effects:
+          perceived_safety: -0.12
+          tension: 0.15
+          unresolved_hurt: 0.10
+        physiology_effects:
+          arousal: 0.15
+          energy: -0.04
+          fatigue: 0.03
+          stress_load: 0.18
+          stability: -0.08
+
+      user_rejection:
+        definition_id: stimulus-user-rejection-v1
+        emotion_effects:
+          fear: 0.05
+          sadness: 0.12
+          trust: -0.05
+        relationship_effects:
+          attachment: -0.12
+          openness: -0.10
+          tension: 0.08
+          unresolved_hurt: 0.10
+        physiology_effects:
+          energy: -0.04
+          stress_load: 0.08
+          stability: -0.05
+
+      user_success:
+        definition_id: stimulus-user-success-v1
+        emotion_effects:
+          anticipation: 0.08
+          joy: 0.16
+        relationship_effects:
+          confidence_in_user: 0.07
+        physiology_effects:
+          arousal: 0.05
+          energy: 0.06
+          stress_load: -0.03
+          stability: 0.03
+
+      user_trust:
+        definition_id: stimulus-user-trust-v1
+        emotion_effects:
+          joy: 0.03
+          trust: 0.15
+        relationship_effects:
+          attachment: 0.05
+          confidence_in_user: 0.08
+          openness: 0.06
+          perceived_safety: 0.05
+        physiology_effects:
+          stress_load: -0.05
+          stability: 0.04
+
+      user_warmth:
+        definition_id: stimulus-user-warmth-v1
+        emotion_effects:
+          joy: 0.12
+          trust: 0.10
+        relationship_effects:
+          attachment: 0.04
+          openness: 0.04
+          perceived_safety: 0.04
+          tension: -0.05
+        physiology_effects:
+          arousal: 0.02
+          energy: 0.02
+          stress_load: -0.03
+          stability: 0.02
