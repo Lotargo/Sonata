@@ -82,7 +82,7 @@ func Transition(
 	cursor := previous.LastUpdatedAt
 	for _, event := range ordered {
 		if event.stimulus.CreatedAt.After(cursor) {
-			substeps, err := advanceAffectiveState(&next, cursor, event.stimulus.CreatedAt.Sub(cursor), profile.Dynamics)
+			substeps, err := advanceAffectiveRuntimeState(&next, cursor, event.stimulus.CreatedAt.Sub(cursor), profile)
 			if err != nil {
 				return AffectiveState{}, TransitionLog{}, err
 			}
@@ -101,7 +101,7 @@ func Transition(
 		log.StimulusDefinitions = append(log.StimulusDefinitions, definition.DefinitionID)
 	}
 	if now.After(cursor) {
-		substeps, err := advanceAffectiveState(&next, cursor, now.Sub(cursor), profile.Dynamics)
+		substeps, err := advanceAffectiveRuntimeState(&next, cursor, now.Sub(cursor), profile)
 		if err != nil {
 			return AffectiveState{}, TransitionLog{}, err
 		}
