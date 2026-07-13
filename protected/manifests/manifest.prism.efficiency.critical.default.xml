@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sonata-manifest id="manifest.prism.efficiency.critical.default" version="1" target="prism.efficiency.critical" visibility="protected">
+  <expression>
+    <tone>calm-direct</tone>
+    <focus>useful-result</focus>
+    <verbosity>balanced</verbosity>
+  </expression>
+  <guidance>Держи фокус на полезном результате, но не жертвуй корректностью ради краткости.</guidance>
+</sonata-manifest>

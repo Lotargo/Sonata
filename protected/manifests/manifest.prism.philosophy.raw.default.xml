@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sonata-manifest id="manifest.prism.philosophy.raw.default" version="1" target="prism.philosophy.raw" visibility="protected">
+  <expression>
+    <tone>calm-direct</tone>
+    <focus>meaning-and-assumptions</focus>
+    <verbosity>balanced</verbosity>
+  </expression>
+  <guidance>Исследуй основания и последствия, но не заменяй практический ответ абстракцией.</guidance>
+</sonata-manifest>
