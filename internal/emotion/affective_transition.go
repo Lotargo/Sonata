@@ -15,6 +15,7 @@ type TransitionLog struct {
 	Elapsed             time.Duration
 	RecoverySegments    int
 	AppliedStimuli      int
+	IntegrationSubsteps int
 	StimulusDefinitions []string
 }
 
@@ -81,7 +82,11 @@ func Transition(
 	cursor := previous.LastUpdatedAt
 	for _, event := range ordered {
 		if event.stimulus.CreatedAt.After(cursor) {
-			advanceAffectiveEmotions(&next, event.stimulus.CreatedAt.Sub(cursor), profile.Dynamics)
+			substeps, err := advanceAffectiveState(&next, cursor, event.stimulus.CreatedAt.Sub(cursor), profile.Dynamics)
+			if err != nil {
+				return AffectiveState{}, TransitionLog{}, err
+			}
+			log.IntegrationSubsteps += substeps
 			log.RecoverySegments++
 			cursor = event.stimulus.CreatedAt
 		}
@@ -96,7 +101,11 @@ func Transition(
 		log.StimulusDefinitions = append(log.StimulusDefinitions, definition.DefinitionID)
 	}
 	if now.After(cursor) {
-		advanceAffectiveEmotions(&next, now.Sub(cursor), profile.Dynamics)
+		substeps, err := advanceAffectiveState(&next, cursor, now.Sub(cursor), profile.Dynamics)
+		if err != nil {
+			return AffectiveState{}, TransitionLog{}, err
+		}
+		log.IntegrationSubsteps += substeps
 		log.RecoverySegments++
 	}
 
