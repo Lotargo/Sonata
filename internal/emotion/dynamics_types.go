@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -203,9 +204,10 @@ func (kind ComplexStateKind) Valid() bool {
 
 // ComplexState is a long-lived dynamics mode, not a medical diagnosis.
 type ComplexState struct {
-	Kind        ComplexStateKind
-	Activation  Unit
-	ActiveSince time.Time
+	Kind         ComplexStateKind
+	DefinitionID string
+	Activation   Unit
+	ActiveSince  time.Time
 }
 
 func (state ComplexState) Active() bool {
@@ -215,6 +217,9 @@ func (state ComplexState) Active() bool {
 func (state ComplexState) Validate() error {
 	if !state.Kind.Valid() {
 		return fmt.Errorf("unsupported complex state kind %q", state.Kind)
+	}
+	if strings.TrimSpace(state.DefinitionID) == "" {
+		return fmt.Errorf("complex state %s definition ID is required", state.Kind)
 	}
 	if err := state.Activation.Validate(); err != nil {
 		return fmt.Errorf("complex state %s activation: %w", state.Kind, err)
@@ -270,13 +275,17 @@ func (evidence EvidenceAccumulator) Validate() error {
 }
 
 type StateEvidence struct {
-	Kind     ComplexStateKind
-	Evidence EvidenceAccumulator
+	Kind         ComplexStateKind
+	DefinitionID string
+	Evidence     EvidenceAccumulator
 }
 
 func (evidence StateEvidence) Validate() error {
 	if !evidence.Kind.Valid() {
 		return fmt.Errorf("unsupported evidence kind %q", evidence.Kind)
+	}
+	if strings.TrimSpace(evidence.DefinitionID) == "" {
+		return fmt.Errorf("evidence for %s definition ID is required", evidence.Kind)
 	}
 	if err := evidence.Evidence.Validate(); err != nil {
 		return fmt.Errorf("evidence for %s: %w", evidence.Kind, err)
