@@ -99,7 +99,10 @@ func (pipeline *DirectPipeline) Run(ctx context.Context, input DirectPipelineInp
 	if strings.TrimSpace(final.Content) == "" {
 		return result, errors.New("synthesis final returned empty content")
 	}
-	if err := validateRoleMetadata(final.Metadata, RoleSynthesisFinal); err != nil {
+	if err := validateRoleMetadataAgainstArtifacts(final.Metadata, RoleSynthesisFinal, RoleArtifacts{
+		Instruction: input.FinalInstruction,
+		Manifest:    input.FinalManifest,
+	}); err != nil {
 		return result, fmt.Errorf("validate synthesis final metadata: %w", err)
 	}
 	result.Final = final
@@ -114,7 +117,7 @@ func validateArtifactRef(ref ArtifactRef, name string) error {
 }
 
 func validateManifestRef(ref ManifestRef) error {
-	if err := validateArtifactRef(ref.ArtifactRef, "synthesis final manifest"); err != nil {
+	if err := validateArtifactRef(ref.ArtifactRef, "manifest"); err != nil {
 		return err
 	}
 	if strings.TrimSpace(ref.Source) == "" {
