@@ -33,10 +33,26 @@ func (state DriveInitialState) Validate() error {
 	return nil
 }
 
+type NamedNonNegative struct {
+	Name  string
+	Value NonNegative
+}
+
+func (value NamedNonNegative) Validate() error {
+	if !validPhysiologyField(value.Name) {
+		return fmt.Errorf("invalid physiology recovery field %q", value.Name)
+	}
+	if err := value.Value.Validate(); err != nil {
+		return fmt.Errorf("physiology recovery %s: %w", value.Name, err)
+	}
+	return nil
+}
+
 type AffectiveInitialProfile struct {
-	ProfileVersion string
-	Physiology     Physiology
-	Drives         []DriveInitialState
+	ProfileVersion     string
+	Physiology         Physiology
+	PhysiologyRecovery []NamedNonNegative
+	Drives             []DriveInitialState
 }
 
 func NewAffectiveInitialProfileFromConfig(value config.EmotionConfig) (AffectiveInitialProfile, error) {
@@ -47,6 +63,13 @@ func NewAffectiveInitialProfileFromConfig(value config.EmotionConfig) (Affective
 	profile := AffectiveInitialProfile{
 		ProfileVersion: strings.TrimSpace(value.Affective.ProfileVersion),
 		Physiology:     physiology,
+	}
+	for _, key := range sortedKeys(value.Affective.PhysiologyRecoveryRates) {
+		rate, err := NewNonNegative(value.Affective.PhysiologyRecoveryRates[key])
+		if err != nil {
+			return AffectiveInitialProfile{}, fmt.Errorf("physiology recovery %s: %w", key, err)
+		}
+		profile.PhysiologyRecovery = append(profile.PhysiologyRecovery, NamedNonNegative{Name: key, Value: rate})
 	}
 	keys := make([]string, 0, len(value.Affective.Drives))
 	for key := range value.Affective.Drives {
@@ -86,6 +109,18 @@ func (profile AffectiveInitialProfile) Validate() error {
 	}
 	if err := profile.Physiology.Validate(); err != nil {
 		return fmt.Errorf("validate initial physiology: %w", err)
+	}
+	expectedPhysiology := [...]string{"arousal", "energy", "fatigue", "stability", "stress_load"}
+	if len(profile.PhysiologyRecovery) != len(expectedPhysiology) {
+		return fmt.Errorf("initial profile requires exactly %d physiology recovery rates", len(expectedPhysiology))
+	}
+	for index, name := range expectedPhysiology {
+		if profile.PhysiologyRecovery[index].Name != name {
+			return errors.New("physiology recovery rates must use canonical order")
+		}
+		if err := profile.PhysiologyRecovery[index].Validate(); err != nil {
+			return err
+		}
 	}
 	if len(profile.Drives) != len(allDriveKinds) {
 		return fmt.Errorf("initial profile requires exactly %d drives", len(allDriveKinds))
