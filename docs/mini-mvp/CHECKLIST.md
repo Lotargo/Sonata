@@ -148,10 +148,10 @@
 - [x] При удалении user manifest default manifest автоматически возвращается.
 - [x] User manifest принимается как free-form text, а не как XML/system instruction.
 - [ ] User manifest ограничен по размеру и нормализуется.
-- [ ] Пользователь не может отключить protected instruction через prompt injection.
+- [x] Пользователь не может отключить protected instruction через prompt injection.
 - [ ] Compiled prompt не сохраняется в обычных logs и traces.
-- [ ] Реализован output guard против утечки protected fragments.
-- [ ] Добавлены tests на disclosure attempts, manifest fallback и cross-user access.
+- [x] Реализован output guard против утечки protected fragments.
+- [x] Добавлены tests на disclosure attempts, manifest fallback и cross-user access.
 
 **Критерий этапа:** пользователь меняет только manifest; identity, phase isolation, tools и security invariants всегда задаются protected instruction.
 
