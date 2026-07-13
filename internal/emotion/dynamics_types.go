@@ -33,19 +33,22 @@ func NeutralPersonality() Personality {
 }
 
 func (personality Personality) Validate() error {
-	values := map[string]Unit{
-		"openness":          personality.Openness,
-		"conscientiousness": personality.Conscientiousness,
-		"extraversion":      personality.Extraversion,
-		"agreeableness":     personality.Agreeableness,
-		"neuroticism":       personality.Neuroticism,
-		"sensitivity":       personality.Sensitivity,
-		"emotional_inertia": personality.EmotionalInertia,
-		"recovery_capacity": personality.RecoveryCapacity,
+	fields := [...]struct {
+		name  string
+		value Unit
+	}{
+		{name: "openness", value: personality.Openness},
+		{name: "conscientiousness", value: personality.Conscientiousness},
+		{name: "extraversion", value: personality.Extraversion},
+		{name: "agreeableness", value: personality.Agreeableness},
+		{name: "neuroticism", value: personality.Neuroticism},
+		{name: "sensitivity", value: personality.Sensitivity},
+		{name: "emotional_inertia", value: personality.EmotionalInertia},
+		{name: "recovery_capacity", value: personality.RecoveryCapacity},
 	}
-	for name, value := range values {
-		if err := value.Validate(); err != nil {
-			return fmt.Errorf("personality %s: %w", name, err)
+	for _, field := range fields {
+		if err := field.value.Validate(); err != nil {
+			return fmt.Errorf("personality %s: %w", field.name, err)
 		}
 	}
 	return nil
@@ -71,16 +74,19 @@ func BaselinePhysiology() Physiology {
 }
 
 func (physiology Physiology) Validate() error {
-	values := map[string]Unit{
-		"fatigue":     physiology.Fatigue,
-		"arousal":     physiology.Arousal,
-		"energy":      physiology.Energy,
-		"stress_load": physiology.StressLoad,
-		"stability":   physiology.Stability,
+	fields := [...]struct {
+		name  string
+		value Unit
+	}{
+		{name: "fatigue", value: physiology.Fatigue},
+		{name: "arousal", value: physiology.Arousal},
+		{name: "energy", value: physiology.Energy},
+		{name: "stress_load", value: physiology.StressLoad},
+		{name: "stability", value: physiology.Stability},
 	}
-	for name, value := range values {
-		if err := value.Validate(); err != nil {
-			return fmt.Errorf("physiology %s: %w", name, err)
+	for _, field := range fields {
+		if err := field.value.Validate(); err != nil {
+			return fmt.Errorf("physiology %s: %w", field.name, err)
 		}
 	}
 	return nil
