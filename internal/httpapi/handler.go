@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -116,7 +117,7 @@ func recoverPanics(logger *slog.Logger) func(http.Handler) http.Handler {
 				if recovered := recover(); recovered != nil {
 					logger.ErrorContext(r.Context(), "http handler panic",
 						"request_id", chimiddleware.GetReqID(r.Context()),
-						"panic", recovered,
+						"panic_type", fmt.Sprintf("%T", recovered),
 						"stack", string(debug.Stack()),
 					)
 					if recorder, ok := w.(*responseRecorder); !ok || !recorder.wroteHeader {
