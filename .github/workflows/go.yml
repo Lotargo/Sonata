@@ -17,6 +17,7 @@ concurrency:
 
 env:
   GOFLAGS: -mod=readonly
+  CONFIG_COVERAGE_MIN: "50.0"
   OPENCODE_ZEN_API_KEY: ci-opencode-key-7d9e
   DATABASE_URL: postgres://sonata:sonata@localhost:5432/sonata?sslmode=disable
   DATABASE_DIRECT_URL: postgres://sonata:sonata@localhost:5432/sonata?sslmode=disable
@@ -64,6 +65,22 @@ jobs:
           set -o pipefail
           go test -v -coverprofile=coverage.out ./... 2>&1 | tee unit-test.log
           go tool cover -func=coverage.out
+
+      - name: Enforce critical module coverage
+        run: |
+          go test -coverprofile=config-coverage.out ./internal/config
+          actual="$(go tool cover -func=config-coverage.out | awk '/^total:/ {gsub("%", "", $3); print $3}')"
+          if [ -z "$actual" ]; then
+            echo 'could not determine internal/config coverage'
+            exit 1
+          fi
+          printf 'internal/config coverage: %s%% (minimum: %s%%)\n' "$actual" "$CONFIG_COVERAGE_MIN"
+          awk -v actual="$actual" -v minimum="$CONFIG_COVERAGE_MIN" 'BEGIN {
+            if ((actual + 0) < (minimum + 0)) {
+              printf "coverage %.1f%% is below required %.1f%%\n", actual, minimum
+              exit 1
+            }
+          }'
 
       - name: Upload unit test diagnostics
         if: failure() && steps.unit-tests.outcome == 'failure'
