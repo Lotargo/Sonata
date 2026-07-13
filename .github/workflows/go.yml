@@ -59,9 +59,19 @@ jobs:
           fi
 
       - name: Run unit tests
+        id: unit-tests
         run: |
-          go test -coverprofile=coverage.out ./...
+          set -o pipefail
+          go test -v -coverprofile=coverage.out ./... 2>&1 | tee unit-test.log
           go tool cover -func=coverage.out
+
+      - name: Upload unit test diagnostics
+        if: failure() && steps.unit-tests.outcome == 'failure'
+        uses: actions/upload-artifact@v7
+        with:
+          name: unit-test-log
+          path: unit-test.log
+          retention-days: 7
 
       - name: Run race detector
         run: go test -race ./...
