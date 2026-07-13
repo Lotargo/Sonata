@@ -1,12 +1,14 @@
-# Emotional state module
+# Affective state module boundary
 
-> Статус: архитектурная основа mini MVP  
-> Реализация: Go module внутри Sonata modular monolith  
+> Статус: каноническая граница модуля для mini MVP  
+> Реализация: Go package внутри Sonata modular monolith  
+> Текущий код: `internal/emotion` является `v0 core`  
+> Математическая и доменная спецификация v1: [`AFFECTIVE_DYNAMICS.md`](./AFFECTIVE_DYNAMICS.md)  
 > Донор идей: `Lotargo/Private---Sentio-Engine`
 
 ## 1. Назначение
 
-Emotional state module поддерживает непрерывное эмоциональное и отношенческое состояние Sonata между пользовательскими запросами.
+Affective state module поддерживает непрерывное внутреннее состояние Sonata между пользовательскими запросами.
 
 Модуль влияет на:
 
@@ -15,292 +17,81 @@ Emotional state module поддерживает непрерывное эмоц�
 - чувствительность к риску;
 - доверие и напряжение в отношениях;
 - интерпретацию неоднозначных событий;
-- финальный выбор Synthesis.
+- итоговый выбор Synthesis.
 
 Модуль не является отдельной личностью и не принимает волевые решения вместо Sonata.
 
-## 2. Жёсткие границы
+## 2. Разделение документов
+
+Этот документ определяет:
+
+- application boundary;
+- ownership и multi-user isolation;
+- security restrictions;
+- stimulus и report boundary;
+- integration с cognitive pipeline;
+- storage и degradation rules.
+
+[`AFFECTIVE_DYNAMICS.md`](./AFFECTIVE_DYNAMICS.md) определяет:
+
+- personality и OCEAN;
+- physiology и fatigue;
+- разные dynamics эмоций;
+- excitation и inhibition;
+- drives;
+- complex states;
+- temporal evidence;
+- transition equations;
+- verification strategy.
+
+При конфликте математической transition-модели приоритет имеет `AFFECTIVE_DYNAMICS.md`.
+
+## 3. Жёсткие границы
 
 Модуль:
 
 - написан на Go;
-- не использует LLM;
+- не использует LLM как обязательную зависимость;
 - не является microservice;
 - не выполняет автономные фоновые действия;
 - не отправляет сообщения пользователю;
 - не вызывает внешние tools;
-- не изменяет memory факты;
+- не изменяет memory facts;
 - не изменяет security policy;
 - не имеет доступа к provider keys;
-- не зависит от OpenWebUI.
+- не зависит от OpenWebUI;
+- не принимает готовый state vector от пользователя или модели.
 
-Он является обычным stateful domain module внутри backend.
+Он является stateful domain module внутри backend.
 
-## 3. Основная модель
+## 4. Текущий v0 core
 
-```text
-baseline personality
-+ current emotional vector
-+ relationship state
-+ deterministic stimuli
-+ decay over time
-+ opposition and dominance rules
-+ bounded transitions
-= EmotionReport
-```
+В `internal/emotion` уже реализованы:
 
-## 4. Состояние
+- typed vector из восьми базовых эмоций;
+- typed relationship state;
+- per-user `StateKey`;
+- validated typed stimuli;
+- deterministic lexical extractor;
+- bounded v0 transitions;
+- opposition/dominance v0;
+- lazy exponential decay;
+- optimistic compare-and-swap memory store;
+- versioned state;
+- compact report;
+- degraded baseline fallback;
+- tests bounds, decay, isolation, replay и concurrent update.
 
-Минимальный эмоциональный vector:
+Этот код является полезной основой, но не считается завершённой affective dynamics model.
 
-```yaml
-joy: 0.0
-trust: 0.0
-fear: 0.0
-surprise: 0.0
-sadness: 0.0
-disgust: 0.0
-anger: 0.0
-anticipation: 0.0
-```
+До HTTP integration он должен быть расширен согласно `AFFECTIVE_DYNAMICS.md`.
 
-Диапазон каждой величины:
+## 5. Canonical state ownership
+
+Для mini MVP state изолируется по пользователю:
 
 ```text
-0.0 <= value <= 1.0
-```
-
-Отношенческое состояние:
-
-```yaml
-attachment: 0.0
-openness: 0.5
-tension: 0.0
-confidence_in_user: 0.5
-perceived_safety: 0.5
-unresolved_hurt: 0.0
-```
-
-Дополнительное runtime-состояние:
-
-```yaml
-fatigue: 0.0
-stability: 1.0
-last_updated_at: timestamp
-state_version: integer
-```
-
-## 5. Baseline
-
-Baseline описывает устойчивую эмоциональную предрасположенность Sonata.
-
-```yaml
-baseline:
-  joy: 0.35
-  trust: 0.45
-  fear: 0.10
-  surprise: 0.15
-  sadness: 0.10
-  disgust: 0.05
-  anger: 0.05
-  anticipation: 0.30
-```
-
-Точные значения определяются отдельно.
-
-State постепенно стремится к baseline, но не сбрасывается к нему мгновенно.
-
-## 6. Stimulus
-
-```go
-type Stimulus struct {
-    Kind       string
-    Source     string
-    Intensity  float64
-    Confidence float64
-    Valence    float64
-    Arousal    float64
-    Target     string
-    CreatedAt  time.Time
-    Metadata   map[string]string
-}
-```
-
-Примеры `Kind`:
-
-```text
-user_warmth
-user_hostility
-user_trust
-user_rejection
-user_distress
-user_success
-user_apology
-user_boundary
-conversation_return
-conversation_break
-promise_kept
-promise_broken
-tool_success
-tool_failure
-response_rejected
-response_appreciated
-```
-
-## 7. Deterministic stimulus extraction
-
-Обязательный путь не зависит от LLM.
-
-Источники сигнала:
-
-- явные feedback actions UI;
-- structured events backend;
-- lexical markers;
-- punctuation and formatting markers;
-- conversation timing;
-- user boundaries;
-- tool outcomes;
-- explicit success or failure events.
-
-Пример:
-
-```text
-user presses positive feedback
--> response_appreciated
--> trust + small increase
--> joy + small increase
-
-user explicitly rejects contact
--> user_boundary
--> attachment activation decreases
--> outreach permission remains disabled
-```
-
-LLM может позднее возвращать необязательный `emotion_hint`, но модуль не зависит от него. Такой hint должен проходить validation, confidence threshold и bounded update.
-
-## 8. State transition
-
-```text
-current state
--> apply elapsed-time decay
--> validate stimulus
--> calculate bounded deltas
--> apply opposition rules
--> clamp values
--> persist new version
--> emit EmotionReport
-```
-
-Пример формулы bounded delta:
-
-```text
-delta = configured_weight
-      * stimulus.intensity
-      * stimulus.confidence
-      * personality_modifier
-      * relationship_modifier
-```
-
-Затем:
-
-```text
-new_value = clamp(old_value + delta, 0.0, 1.0)
-```
-
-## 9. Decay
-
-Decay вычисляется лениво при каждом обращении к state. Отдельный таймер не требуется.
-
-```text
-elapsed = now - last_updated_at
-value = baseline + (value - baseline) * exp(-decay_rate * elapsed)
-```
-
-Разные emotions могут иметь разные decay rates.
-
-Relationship-state изменяется медленнее обычного эмоционального vector.
-
-## 10. Opposition and dominance
-
-Противоположные emotions не должны независимо расти до максимума без ограничений.
-
-Начальные пары:
-
-```text
-joy <-> sadness
-trust <-> disgust
-fear <-> anger
-surprise <-> anticipation
-```
-
-При росте одной стороны противоположная сторона получает bounded suppression.
-
-Dominance rule не удаляет сложные смешанные состояния полностью. Sonata может одновременно испытывать, например, доверие и тревогу.
-
-## 11. EmotionReport
-
-```go
-type EmotionReport struct {
-    StateVersion      int64
-    DominantEmotions  []EmotionSignal
-    Relationship      RelationshipReport
-    Fatigue           float64
-    Stability         float64
-    ToneBias          string
-    RiskSensitivity   float64
-    AssociationBiases []string
-    GeneratedAt       time.Time
-}
-```
-
-Report должен быть компактным и не включать полную историю emotional events.
-
-Пример:
-
-```yaml
-state_version: 42
-dominant_emotions:
-  - name: trust
-    value: 0.63
-  - name: anticipation
-    value: 0.41
-relationship:
-  attachment: 0.52
-  tension: 0.08
-  perceived_safety: 0.71
-tone_bias: warm_attentive
-risk_sensitivity: 0.34
-association_biases:
-  - cooperation
-  - long_term_continuity
-```
-
-## 12. Integration with cognitive pipeline
-
-```text
-incoming user message
--> deterministic event extraction
--> emotion.ApplyStimuli
--> emotion.GetReport
--> raw prism phase
--> critical phase
--> summary phase
--> Synthesis
--> response and tool outcome events
--> emotion.ApplyStimuli
--> persist
-```
-
-Все призмы получают один и тот же state version, но используют его согласно собственной оптике.
-
-Synthesis получает тот же report и принимает итоговое решение от имени одной Sonata.
-
-## 13. Multi-user isolation
-
-Для mini MVP emotional relationship state изолируется по `user_id`.
-
-```text
-emotion_state_key = sonata_identity_id + user_id
+state_key = sonata_identity_id + user_id
 ```
 
 Это предотвращает:
@@ -308,64 +99,235 @@ emotion_state_key = sonata_identity_id + user_id
 - перенос конфликта одного пользователя на другого;
 - утечку отношений;
 - влияние злоумышленника на ответы всем пользователям;
-- смешение приватного emotional history.
+- смешение private affective history;
+- перенос complex states между владельцами.
 
-Global emotional state Sonata в mini MVP не используется. Возможность общего state рассматривается отдельно после появления модели безопасности и governance.
+Global shared affective state Sonata в mini MVP не используется.
 
-## 14. Storage
+## 6. Stimulus boundary
 
-Neon tables:
+Canonical input является typed event, а не свободным эмоциональным описанием:
 
-```text
-emotional_states
-emotional_events
-emotion_profiles
-emotion_state_versions
+```go
+type Stimulus struct {
+    Kind       StimulusKind
+    Source     StimulusSource
+    Intensity  Unit
+    Confidence Unit
+    Valence    SignedUnit
+    Arousal    SignedUnit
+    Target     StimulusTarget
+    CreatedAt  time.Time
+    Metadata   SafeMetadata
+}
 ```
 
-`emotional_states` хранит только последнюю materialized version.
+Источники сигнала:
 
-`emotional_events` хранит значимые typed events и audit metadata.
+- explicit feedback actions UI;
+- structured backend events;
+- deterministic lexical markers;
+- punctuation and formatting markers;
+- conversation timing;
+- explicit user boundaries;
+- tool outcomes;
+- response acceptance or rejection;
+- cognitive load events.
 
-Raw message text не должен дублироваться в emotional events.
+Один внешний event может быть преобразован в несколько typed stimuli.
 
-## 15. Security
+LLM classifier может позднее возвращать необязательный `EmotionHint`, но такой hint:
+
+- считается недоверенным;
+- проходит schema validation;
+- проходит confidence threshold;
+- преобразуется только в bounded stimuli;
+- никогда не записывается как готовый state.
+
+## 7. Transition boundary
+
+Application вызывает одну детерминированную операцию:
+
+```go
+func Transition(
+    previous State,
+    stimuli []Stimulus,
+    now time.Time,
+    profile Profile,
+) (State, TransitionLog, error)
+```
+
+Transition обязан:
+
+- проверить owner и version;
+- продвинуть elapsed-time dynamics;
+- применить stimuli в стабильном порядке;
+- сохранить bounded invariants;
+- увеличить version ровно на один;
+- вернуть safe audit log без raw text и secrets.
+
+Внутренняя математика описана в `AFFECTIVE_DYNAMICS.md`.
+
+## 8. Report boundary
+
+Affective engine создаёт один canonical report version на cognitive run.
+
+```go
+type Report struct {
+    StateVersion      int64
+    DominantEmotions  []EmotionSignal
+    Physiology        PhysiologyReport
+    Relationship      RelationshipReport
+    ActiveStates      []ComplexStateSignal
+    ToneBias          ToneBias
+    RiskSensitivity   Unit
+    AssociationBiases []AssociationBias
+    GeneratedAt       time.Time
+}
+```
+
+Report:
+
+- компактен;
+- не содержит event history;
+- не содержит raw user messages;
+- не содержит protected instructions;
+- не содержит secrets;
+- не раскрывает внутренние диагностические коэффициенты.
+
+## 9. Cognitive pipeline integration
+
+Целевой поток:
+
+```text
+incoming user event
+-> deterministic extraction
+-> load affective state
+-> Transition
+-> persist version
+-> build canonical report
+-> build role-specific projections
+-> cognitive pipeline
+-> response/tool outcome events
+-> next Transition
+```
+
+Router не получает affective report.
+
+Прямой report в mini MVP разрешён:
+
+- Raw prisms;
+- Critical phase;
+- Synthesis tooling;
+- Synthesis final.
+
+Summary phase не получает отдельный report. Она обобщает raw и critical output своей призмы.
+
+Все разрешённые роли одного cognitive run видят одну `StateVersion`.
+
+HTTP integration запрещено отмечать завершённой, пока требования affective dynamics v1 не реализованы и не прошли tests.
+
+## 10. Relationship boundary
+
+Relationship state является частью affective state, но изменяется медленнее basic emotions.
+
+Начальные показатели:
+
+```text
+attachment
+openness
+tension
+confidence_in_user
+perceived_safety
+unresolved_hurt
+```
+
+Relationship:
+
+- owner-scoped;
+- не даёт permission на autonomous outreach;
+- не отменяет user boundaries;
+- не меняет security policy;
+- не является memory fact store.
+
+## 11. Storage
+
+Canonical storage после этапа 08:
+
+```text
+affective_states
+affective_events
+```
+
+`affective_states` хранит последнюю materialized version, включая:
+
+- emotion vector;
+- physiology;
+- relationship;
+- drives;
+- complex states;
+- temporal accumulators;
+- profile version;
+- state version;
+- last update timestamp.
+
+`affective_events` хранит:
+
+- typed stimulus kind;
+- bounded numeric attributes;
+- state version before/after;
+- safe audit metadata;
+- timestamp.
+
+Raw message text не дублируется в affective tables.
+
+Repository сохраняет optimistic version semantics текущего memory store.
+
+## 12. Security
 
 Модуль не должен:
 
-- принимать произвольный state vector напрямую от пользователя;
-- доверять XML overlay как источнику фактического состояния;
+- принимать произвольный vector напрямую от пользователя;
+- доверять XML overlay как источнику state;
 - использовать provider output без validation;
-- сохранять secrets в metadata;
-- позволять одному user ID изменять state другого;
-- выводить внутренние emotional events через публичный API.
+- сохранять secret-like metadata;
+- позволять одному user ID читать или изменять state другого;
+- выводить внутренние events через public API;
+- изменять protected instructions;
+- использовать active complex state как основание для ослабления safety rules.
 
-User XML может задавать предпочтительный стиль выражения эмоций, но не может напрямую выставлять текущие значения state.
+User manifest может менять стиль выражения, но не canonical state.
 
-## 16. Graceful degradation
+## 13. Graceful degradation
 
-Если emotional module недоступен или state повреждён:
+При storage failure или повреждённом state:
 
 ```text
-load baseline profile
--> mark emotion_status=DEGRADED
+load validated baseline profile
+-> emit affective_status=DEGRADED
 -> continue cognitive pipeline
+-> do not overwrite canonical state silently
 ```
 
-Ошибка emotion module не должна полностью останавливать ответ.
+Ошибка affective module не должна полностью останавливать ответ.
 
-## 17. Что переносится из Sentio Engine
+Recovery canonical state выполняется отдельной repository operation с audit record.
 
-Переносятся как идеи:
+## 14. Что переносится из Sentio Engine
+
+Переносятся после ревизии:
 
 - stateful emotional core;
-- baseline profile;
-- decay over time;
-- opposing emotion suppression;
+- baseline profiles;
+- per-emotion dynamics;
+- elapsed-time change;
+- opposition and dominance;
+- OCEAN personality effects;
 - relationship persistence;
+- drives;
+- complex emotional states;
 - significant event history;
-- personality modifiers;
-- bounded report injected before generation.
+- bounded report projection.
 
 Не переносятся автоматически:
 
@@ -374,20 +336,25 @@ load baseline profile
 - MongoDB;
 - Redis dependency;
 - отдельный network API;
-- LLM parser as required input;
+- обязательный LLM parser;
+- OpenAI proxy mode;
 - autonomous background runtime;
-- готовые schema без ревизии.
+- поздние упрощения current `main` Sentio;
+- schemas без ревизии.
 
-## 18. Критерий готовности
+## 15. Acceptance boundary
 
-Модуль готов для mini MVP, когда:
+Stage 07 готов только когда:
 
-- полностью реализован на Go;
-- не требует LLM;
-- state изолирован по user ID;
-- decay детерминирован;
+- v1 domain model реализована на Go;
+- personality, physiology, drives и complex states участвуют в transition;
+- fatigue действует по-разному на разные emotional channels;
+- complex states изменяют будущую динамику;
 - transition bounded и воспроизводим;
-- противоположные emotions учитываются;
-- EmotionReport используется всеми призмами и Synthesis;
-- raw secrets и сообщения не попадают в emotional event log;
-- тесты покрывают transition, decay, isolation и degraded mode.
+- elapsed time обрабатывается детерминированно;
+- state изолирован по user ID;
+- модуль не зависит от LLM;
+- long-horizon, property, fuzz, replay и race tests проходят;
+- один state version используется разрешёнными cognitive roles;
+- Router исключён;
+- raw content и secrets не попадают в affective event log.
