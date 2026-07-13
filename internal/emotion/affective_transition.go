@@ -9,12 +9,12 @@ import (
 )
 
 type TransitionLog struct {
-	ProfileVersion     string
-	FromVersion        int64
-	ToVersion          int64
-	Elapsed            time.Duration
-	RecoverySegments   int
-	AppliedStimuli     int
+	ProfileVersion      string
+	FromVersion         int64
+	ToVersion           int64
+	Elapsed             time.Duration
+	RecoverySegments    int
+	AppliedStimuli      int
 	StimulusDefinitions []string
 }
 
@@ -43,6 +43,9 @@ func Transition(
 	}
 	if previous.ProfileVersion != profile.Dynamics.Version {
 		return AffectiveState{}, TransitionLog{}, errors.New("state profile version does not match runtime profile")
+	}
+	if err := validateAffectiveStateDefinitions(previous, profile.Dynamics); err != nil {
+		return AffectiveState{}, TransitionLog{}, err
 	}
 
 	ordered := make([]indexedStimulus, 0, len(stimuli))
@@ -106,6 +109,28 @@ func Transition(
 	}
 	log.ToVersion = next.Version
 	return next, log, nil
+}
+
+func validateAffectiveStateDefinitions(state AffectiveState, profile AffectiveProfile) error {
+	for _, active := range state.ComplexStates {
+		definition, exists := complexDefinition(profile, active.Kind)
+		if !exists {
+			return fmt.Errorf("state contains unsupported complex state %s", active.Kind)
+		}
+		if active.DefinitionID != definition.DefinitionID {
+			return fmt.Errorf("complex state %s definition %q does not match profile definition %q", active.Kind, active.DefinitionID, definition.DefinitionID)
+		}
+	}
+	for _, evidence := range state.Evidence {
+		definition, exists := complexDefinition(profile, evidence.Kind)
+		if !exists {
+			return fmt.Errorf("state contains unsupported evidence %s", evidence.Kind)
+		}
+		if evidence.DefinitionID != definition.DefinitionID {
+			return fmt.Errorf("evidence %s definition %q does not match profile definition %q", evidence.Kind, evidence.DefinitionID, definition.DefinitionID)
+		}
+	}
+	return nil
 }
 
 func applyAffectiveStimulus(
@@ -256,7 +281,7 @@ func activeEmotionMultiplier(
 			modifiers = definition.Effects.EmotionInhibition
 		}
 		if value, exists := emotionMultiplier(modifiers, emotion); exists {
-			result *= value.Float64()
+			result *= interpolateMultiplier(value.Float64(), active.Activation.Float64())
 		}
 	}
 	return clampFloat(result, 0, 2)
@@ -292,7 +317,7 @@ func effectiveEmotionCeiling(state AffectiveState, profile AffectiveProfile, emo
 			continue
 		}
 		if value, exists := emotionMultiplier(definition.Effects.EmotionCeiling, emotion); exists {
-			ceiling *= value.Float64()
+			ceiling *= interpolateMultiplier(value.Float64(), active.Activation.Float64())
 		}
 	}
 	return clampFloat(ceiling, 0, 1)
@@ -332,11 +357,15 @@ func activeDriveUrgencyMultiplier(state AffectiveState, profile AffectiveProfile
 		}
 		for _, modifier := range definition.Effects.DriveUrgency {
 			if modifier.Drive == drive {
-				result *= modifier.Value.Float64()
+				result *= interpolateMultiplier(modifier.Value.Float64(), active.Activation.Float64())
 			}
 		}
 	}
 	return clampFloat(result, 0, 2)
+}
+
+func interpolateMultiplier(configured, activation float64) float64 {
+	return 1 + (configured-1)*clampFloat(activation, 0, 1)
 }
 
 func applyRelationshipEffect(state *RelationshipState, name string, delta float64) {
