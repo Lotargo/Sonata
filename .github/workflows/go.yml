@@ -101,8 +101,10 @@ jobs:
 
       - name: Prepare optional file-backed secrets
         run: |
-          sudo install -d -m 0700 /etc/secrets
+          sudo install -d -m 0711 /etc/secrets
           printf '%s\n' 'Authorization=Bearer ci-grafana-token' | sudo tee /etc/secrets/grafana-otlp-headers >/dev/null
+          sudo chown "$(id -u):$(id -g)" /etc/secrets/grafana-otlp-headers
+          chmod 0600 /etc/secrets/grafana-otlp-headers
 
       - name: Validate all configuration profiles
         id: config-validation
