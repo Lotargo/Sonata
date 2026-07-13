@@ -45,6 +45,31 @@ func TestAffectiveValidationRejectsIncompleteMatricesAndMissingHysteresis(t *tes
 	}
 }
 
+func TestAffectiveValidationRejectsCeilingBelowBaselineAndCrossDomainDefinitionID(t *testing.T) {
+	setRepositoryConfigSecrets(t)
+
+	root := filepath.Join("..", "..", "config")
+	cfg, err := NewLoader(nil).Load(context.Background(), root, "local")
+	if err != nil {
+		t.Fatal(err)
+	}
+	joy := cfg.Emotion.Affective.Dynamics["joy"]
+	joy.Ceiling = cfg.Emotion.Baseline["joy"] - 0.01
+	cfg.Emotion.Affective.Dynamics["joy"] = joy
+
+	depressive := cfg.Emotion.Affective.ComplexStates["depressive"]
+	depressive.DefinitionID = cfg.Emotion.Affective.Drives["recovery"].DefinitionID
+	cfg.Emotion.Affective.ComplexStates["depressive"] = depressive
+
+	problems := strings.Join(cfg.Emotion.ValidateAffective(), "; ")
+	if !strings.Contains(problems, "ceiling cannot be below emotion.baseline.joy") {
+		t.Fatalf("invalid ceiling was not rejected: %s", problems)
+	}
+	if !strings.Contains(problems, "definition_id duplicates emotion.affective.drives.recovery") {
+		t.Fatalf("cross-domain duplicate ID was not rejected: %s", problems)
+	}
+}
+
 func setRepositoryConfigSecrets(t *testing.T) {
 	t.Helper()
 	for key, value := range map[string]string{
