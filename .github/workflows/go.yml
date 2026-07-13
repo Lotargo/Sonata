@@ -105,10 +105,21 @@ jobs:
           printf '%s\n' 'Authorization=Bearer ci-grafana-token' | sudo tee /etc/secrets/grafana-otlp-headers >/dev/null
 
       - name: Validate all configuration profiles
+        id: config-validation
         run: |
+          set -o pipefail
           for profile in local staging production; do
+            echo "=== profile: $profile ==="
             go run ./cmd/sonata config validate --config-root config --profile "$profile"
-          done
+          done 2>&1 | tee config-validation.log
+
+      - name: Upload configuration diagnostics
+        if: failure() && steps.config-validation.outcome == 'failure'
+        uses: actions/upload-artifact@v7
+        with:
+          name: config-validation-log
+          path: config-validation.log
+          retention-days: 7
 
       - name: Verify redacted configuration output
         run: |
