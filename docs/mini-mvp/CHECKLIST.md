@@ -77,7 +77,7 @@
 - [x] CI запускает `govulncheck ./...`.
 - [x] Добавлена проверка YAML configuration всех profiles.
 - [x] Добавлена проверка отсутствия секретов в repository.
-- [ ] Добавлены минимальные coverage thresholds для критических domain modules.
+- [x] Добавлены минимальные coverage thresholds для критических domain modules.
 
 **Критерий этапа:** merge невозможен при ошибке config, tests, race detector или secret scan.
 
