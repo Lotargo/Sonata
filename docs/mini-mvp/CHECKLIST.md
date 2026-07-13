@@ -51,32 +51,32 @@
 - [x] Поддержаны secret sources `env` и `file`.
 - [x] Реализован `SecretValue` с redacted formatting и serialization.
 - [x] Добавлен `.env.example` без реальных значений.
-- [ ] Проверено, что ни один secret не попадает в logs, YAML snapshot и ошибки startup.
-- [ ] Добавлен автоматический secret-pattern scan в CI.
+- [x] Проверено, что ни один secret не попадает в logs, YAML snapshot и ошибки startup.
+- [x] Добавлен автоматический secret-pattern scan в CI.
 
 ### Проверка
 
 - [x] Добавлены unit tests config loader, merge, missing secrets и redaction.
-- [ ] `go mod tidy` выполнен в окружении с доступом к registry.
-- [ ] `go test ./...` проходит на целевой версии Go.
-- [ ] `go test -race ./...` проходит.
-- [ ] Команда `sonata config validate --profile production` проходит с тестовыми secrets.
-- [ ] Команда `sonata config print --redacted` не содержит raw secret values.
+- [x] `go mod tidy` выполнен в окружении с доступом к registry.
+- [x] `go test ./...` проходит на целевой версии Go.
+- [x] `go test -race ./...` проходит.
+- [x] Команда `sonata config validate --profile production` проходит с тестовыми secrets.
+- [x] Команда `sonata config print --redacted` не содержит raw secret values.
 
 **Критерий этапа:** configuration загружается одинаково в API и Worker, invalid production config останавливает startup.
 
 ## 02. CI и качество кода
 
-- [ ] Добавлен GitHub Actions workflow для Go.
-- [ ] В CI закреплена выбранная версия Go.
-- [ ] CI запускает `go mod tidy` и проверяет чистый git diff.
-- [ ] CI запускает `go test ./...`.
-- [ ] CI запускает `go test -race ./...`.
-- [ ] CI запускает `go vet ./...`.
-- [ ] CI запускает `staticcheck ./...`.
-- [ ] CI запускает `govulncheck ./...`.
-- [ ] Добавлена проверка YAML configuration всех profiles.
-- [ ] Добавлена проверка отсутствия секретов в repository.
+- [x] Добавлен GitHub Actions workflow для Go.
+- [x] В CI закреплена выбранная версия Go.
+- [x] CI запускает `go mod tidy` и проверяет чистый git diff.
+- [x] CI запускает `go test ./...`.
+- [x] CI запускает `go test -race ./...`.
+- [x] CI запускает `go vet ./...`.
+- [x] CI запускает `staticcheck ./...`.
+- [x] CI запускает `govulncheck ./...`.
+- [x] Добавлена проверка YAML configuration всех profiles.
+- [x] Добавлена проверка отсутствия секретов в repository.
 - [ ] Добавлены минимальные coverage thresholds для критических domain modules.
 
 **Критерий этапа:** merge невозможен при ошибке config, tests, race detector или secret scan.
