@@ -34,14 +34,14 @@ func NeutralPersonality() Personality {
 
 func (personality Personality) Validate() error {
 	values := map[string]Unit{
-		"openness":           personality.Openness,
-		"conscientiousness":  personality.Conscientiousness,
-		"extraversion":       personality.Extraversion,
-		"agreeableness":      personality.Agreeableness,
-		"neuroticism":        personality.Neuroticism,
-		"sensitivity":        personality.Sensitivity,
-		"emotional_inertia":  personality.EmotionalInertia,
-		"recovery_capacity":  personality.RecoveryCapacity,
+		"openness":          personality.Openness,
+		"conscientiousness": personality.Conscientiousness,
+		"extraversion":      personality.Extraversion,
+		"agreeableness":     personality.Agreeableness,
+		"neuroticism":       personality.Neuroticism,
+		"sensitivity":       personality.Sensitivity,
+		"emotional_inertia": personality.EmotionalInertia,
+		"recovery_capacity": personality.RecoveryCapacity,
 	}
 	for name, value := range values {
 		if err := value.Validate(); err != nil {
@@ -96,12 +96,13 @@ const (
 	DriveRecovery         DriveKind = "recovery"
 )
 
+// allDriveKinds uses canonical lexical order so serialization, validation and replay agree.
 var allDriveKinds = [...]DriveKind{
-	DriveCognition,
-	DriveSocialConnection,
-	DriveSafety,
 	DriveCoherence,
+	DriveCognition,
 	DriveRecovery,
+	DriveSafety,
+	DriveSocialConnection,
 }
 
 func AllDriveKinds() []DriveKind {
@@ -143,11 +144,11 @@ func (drive DriveState) Validate() error {
 
 func BaselineDrives() []DriveState {
 	return []DriveState{
-		{Kind: DriveCognition, Level: Unit(0.7), Satisfaction: Unit(0.5), Urgency: Unit(0.35)},
-		{Kind: DriveSocialConnection, Level: Unit(0.6), Satisfaction: Unit(0.5), Urgency: Unit(0.30)},
-		{Kind: DriveSafety, Level: Unit(0.8), Satisfaction: Unit(0.7), Urgency: Unit(0.20)},
 		{Kind: DriveCoherence, Level: Unit(0.7), Satisfaction: Unit(0.6), Urgency: Unit(0.25)},
+		{Kind: DriveCognition, Level: Unit(0.7), Satisfaction: Unit(0.5), Urgency: Unit(0.35)},
 		{Kind: DriveRecovery, Level: Unit(0.5), Satisfaction: Unit(0.8), Urgency: Unit(0.10)},
+		{Kind: DriveSafety, Level: Unit(0.8), Satisfaction: Unit(0.7), Urgency: Unit(0.20)},
+		{Kind: DriveSocialConnection, Level: Unit(0.6), Satisfaction: Unit(0.5), Urgency: Unit(0.30)},
 	}
 }
 
@@ -174,11 +175,11 @@ func ValidateDrives(drives []DriveState) error {
 type ComplexStateKind string
 
 const (
-	ComplexStateDepressive         ComplexStateKind = "depressive"
-	ComplexStateEuphoria           ComplexStateKind = "euphoria"
-	ComplexStateChronicStress      ComplexStateKind = "chronic_stress"
+	ComplexStateDepressive          ComplexStateKind = "depressive"
+	ComplexStateEuphoria            ComplexStateKind = "euphoria"
+	ComplexStateChronicStress       ComplexStateKind = "chronic_stress"
 	ComplexStateEmotionalExhaustion ComplexStateKind = "emotional_exhaustion"
-	ComplexStateGuardedAttachment  ComplexStateKind = "guarded_attachment"
+	ComplexStateGuardedAttachment   ComplexStateKind = "guarded_attachment"
 )
 
 func (kind ComplexStateKind) Valid() bool {
