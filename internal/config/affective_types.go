@@ -4,18 +4,19 @@ package config
 // deterministic affective dynamics engine. The legacy emotion fields remain in
 // EmotionConfig until the v0 transition engine is retired.
 type AffectiveConfig struct {
-	ProfileVersion        string                                    `yaml:"profile_version"`
-	IntegrationStep       Duration                                  `yaml:"integration_step"`
-	MaxSubsteps           int                                       `yaml:"max_substeps"`
-	Personality           AffectivePersonalityConfig                `yaml:"personality"`
-	InitialPhysiology     AffectivePhysiologyConfig                 `yaml:"initial_physiology"`
-	Dynamics              map[string]AffectiveEmotionDynamicsConfig `yaml:"dynamics"`
-	PersonalityInfluences map[string]PersonalityInfluenceConfig     `yaml:"personality_influences"`
-	PhysiologyInfluences  map[string]PhysiologyInfluenceConfig      `yaml:"physiology_influences"`
-	Interactions          []EmotionInteractionConfig                `yaml:"interactions"`
-	Stimuli               map[string]StimulusDefinitionConfig       `yaml:"stimuli"`
-	Drives                map[string]DriveDefinitionConfig          `yaml:"drives"`
-	ComplexStates         map[string]ComplexStateDefinitionConfig   `yaml:"complex_states"`
+	ProfileVersion           string                                    `yaml:"profile_version"`
+	IntegrationStep          Duration                                  `yaml:"integration_step"`
+	MaxSubsteps              int                                       `yaml:"max_substeps"`
+	Personality              AffectivePersonalityConfig                `yaml:"personality"`
+	InitialPhysiology        AffectivePhysiologyConfig                 `yaml:"initial_physiology"`
+	PhysiologyRecoveryRates  map[string]float64                        `yaml:"physiology_recovery_rates"`
+	Dynamics                 map[string]AffectiveEmotionDynamicsConfig `yaml:"dynamics"`
+	PersonalityInfluences    map[string]PersonalityInfluenceConfig     `yaml:"personality_influences"`
+	PhysiologyInfluences     map[string]PhysiologyInfluenceConfig      `yaml:"physiology_influences"`
+	Interactions             []EmotionInteractionConfig                `yaml:"interactions"`
+	Stimuli                  map[string]StimulusDefinitionConfig       `yaml:"stimuli"`
+	Drives                   map[string]DriveDefinitionConfig          `yaml:"drives"`
+	ComplexStates            map[string]ComplexStateDefinitionConfig   `yaml:"complex_states"`
 }
 
 type AffectivePersonalityConfig struct {
@@ -69,10 +70,10 @@ type EmotionInteractionConfig struct {
 }
 
 type StimulusDefinitionConfig struct {
-	DefinitionID       string             `yaml:"definition_id"`
-	EmotionEffects     map[string]float64 `yaml:"emotion_effects"`
+	DefinitionID        string             `yaml:"definition_id"`
+	EmotionEffects      map[string]float64 `yaml:"emotion_effects"`
 	RelationshipEffects map[string]float64 `yaml:"relationship_effects"`
-	PhysiologyEffects  map[string]float64 `yaml:"physiology_effects"`
+	PhysiologyEffects   map[string]float64 `yaml:"physiology_effects"`
 }
 
 type DriveDefinitionConfig struct {
