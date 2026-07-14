@@ -63,6 +63,7 @@ type RoleRun struct {
 	ManifestID         string      `json:"manifest_id"`
 	ManifestVersion    int32       `json:"manifest_version"`
 	ManifestHash       string      `json:"manifest_hash"`
+	ManifestSource     string      `json:"manifest_source"`
 	LatencyMs          int64       `json:"latency_ms"`
 	Usage              []byte      `json:"usage"`
 	ErrorCode          string      `json:"error_code"`
