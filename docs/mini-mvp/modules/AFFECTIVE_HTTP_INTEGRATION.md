@@ -1,7 +1,7 @@
 # Affective HTTP request integration
 
-> Статус: implemented, ожидает подтверждения полного CI  
-> Candidate head: `d904c95c0b97c5365bc6f9c3634f3bc39e7c03ca`  
+> Статус: verified  
+> Full CI подтверждён на head: `5edf3bdbd70539aef399d8062cea138d69cdda29`  
 > Affective profile: `sonata-affective-v1.0.0`  
 > Report contract: `sonata-emotion-report-v1`
 
@@ -107,6 +107,8 @@ Tests проверяют:
 - request cancellation не вызывает downstream cognition;
 - HTTP response остаётся доступным при affective degradation.
 
+Полный CI для этого increment подтверждён на head `5edf3bdbd70539aef399d8062cea138d69cdda29`.
+
 ## 8. Не входит в increment
 
 - canonical Neon persistence;
@@ -115,4 +117,4 @@ Tests проверяют:
 - самостоятельные фоновые transitions;
 - response и tool outcome events, которые подключаются отдельными typed event producers.
 
-Пункт 07B закрывается только после зелёного полного CI для candidate head или его исправленной версии.
+Пункт 07B закрыт после зелёного полного CI на implementation head `5edf3bdbd70539aef399d8062cea138d69cdda29`.
