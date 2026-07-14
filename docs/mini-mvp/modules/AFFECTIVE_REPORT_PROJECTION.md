@@ -1,6 +1,6 @@
 # Canonical affective report projection
 
-> Статус: implemented, ожидает подтверждения полного CI  
+> Статус: implemented and verified; полный CI подтверждён на head `0e43a04a537c24c1bbd905c0751365071d530f16`  
 > Contract: `sonata-emotion-report-v1`  
 > Affective profile: `sonata-affective-v1.0.0`  
 > Parent boundary: [`EMOTION_MODULE.md`](./EMOTION_MODULE.md)
@@ -54,8 +54,10 @@ Regression tests проверяют:
 - точное равенство report во всех разрешённых full-route ролях;
 - direct Synthesis получает report без full-route Context, Dialogue или ToolResults.
 
+Полный repository CI подтверждён на head `0e43a04a537c24c1bbd905c0751365071d530f16`; increment принят.
+
 ## 5. Граница текущего increment
 
 Этот increment фиксирует cognitive contract и projection topology. Он не извлекает stimuli из HTTP request, не загружает affective state и не сохраняет transition.
 
-Подключение affective module к HTTP request flow остаётся отдельным пунктом stage 07B и выполняется после подтверждения CI этого контракта.
+Подключение affective module к HTTP request flow остаётся отдельным пунктом stage 07B.
