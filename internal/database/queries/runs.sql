@@ -33,6 +33,7 @@ INSERT INTO sonata.role_runs (
     manifest_id,
     manifest_version,
     manifest_hash,
+    manifest_source,
     latency_ms,
     usage,
     error_code,
@@ -51,12 +52,13 @@ VALUES (
     sqlc.arg(manifest_id),
     sqlc.arg(manifest_version),
     sqlc.arg(manifest_hash),
+    sqlc.arg(manifest_source),
     sqlc.arg(latency_ms),
     sqlc.arg(usage)::jsonb,
     sqlc.arg(error_code),
     sqlc.arg(created_at)
 )
-RETURNING id, owner_id, cognitive_run_id, phase, perspective, status, model_id, instruction_id, instruction_version, instruction_hash, manifest_id, manifest_version, manifest_hash, latency_ms, usage, error_code, created_at;
+RETURNING id, owner_id, cognitive_run_id, phase, perspective, status, model_id, instruction_id, instruction_version, instruction_hash, manifest_id, manifest_version, manifest_hash, manifest_source, latency_ms, usage, error_code, created_at;
 
 -- name: CompleteRoleRun :one
 UPDATE sonata.role_runs
@@ -68,7 +70,7 @@ SET status = sqlc.arg(status),
 WHERE owner_id = sqlc.arg(owner_id)
   AND cognitive_run_id = sqlc.arg(cognitive_run_id)
   AND id = sqlc.arg(role_run_id)
-RETURNING id, owner_id, cognitive_run_id, phase, perspective, status, model_id, instruction_id, instruction_version, instruction_hash, manifest_id, manifest_version, manifest_hash, latency_ms, usage, error_code, created_at;
+RETURNING id, owner_id, cognitive_run_id, phase, perspective, status, model_id, instruction_id, instruction_version, instruction_hash, manifest_id, manifest_version, manifest_hash, manifest_source, latency_ms, usage, error_code, created_at;
 
 -- name: CompleteCognitiveRun :one
 UPDATE sonata.cognitive_runs
@@ -86,7 +88,7 @@ WHERE owner_id = sqlc.arg(owner_id)
   AND id = sqlc.arg(cognitive_run_id);
 
 -- name: ListRoleRuns :many
-SELECT id, owner_id, cognitive_run_id, phase, perspective, status, model_id, instruction_id, instruction_version, instruction_hash, manifest_id, manifest_version, manifest_hash, latency_ms, usage, error_code, created_at
+SELECT id, owner_id, cognitive_run_id, phase, perspective, status, model_id, instruction_id, instruction_version, instruction_hash, manifest_id, manifest_version, manifest_hash, manifest_source, latency_ms, usage, error_code, created_at
 FROM sonata.role_runs
 WHERE owner_id = sqlc.arg(owner_id)
   AND cognitive_run_id = sqlc.arg(cognitive_run_id)
