@@ -13,13 +13,21 @@ import (
 )
 
 const completeCognitiveRun = `-- name: CompleteCognitiveRun :one
-UPDATE sonata.cognitive_runs
+UPDATE sonata.cognitive_runs AS run
 SET status = $1,
     completed_at = $2,
     metadata = $3::jsonb
-WHERE owner_id = $4
-  AND id = $5
-RETURNING id, owner_id, conversation_id, request_message_id, route, status, started_at, completed_at, metadata
+WHERE run.owner_id = $4
+  AND run.id = $5
+  AND run.status = 'RUNNING'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM sonata.role_runs AS role
+      WHERE role.owner_id = run.owner_id
+        AND role.cognitive_run_id = run.id
+        AND role.status = 'RUNNING'
+  )
+RETURNING run.id, run.owner_id, run.conversation_id, run.request_message_id, run.route, run.status, run.started_at, run.completed_at, run.metadata
 `
 
 type CompleteCognitiveRunParams struct {
@@ -63,18 +71,37 @@ SET status = $1,
 WHERE owner_id = $6
   AND cognitive_run_id = $7
   AND id = $8
+  AND status = 'RUNNING'
+  AND phase = $9
+  AND perspective = $10
+  AND instruction_id = $11
+  AND instruction_version = $12
+  AND instruction_hash = $13
+  AND manifest_id = $14
+  AND manifest_version = $15
+  AND manifest_hash = $16
+  AND manifest_source = $17
 RETURNING id, owner_id, cognitive_run_id, phase, perspective, status, model_id, instruction_id, instruction_version, instruction_hash, manifest_id, manifest_version, manifest_hash, manifest_source, latency_ms, usage, error_code, created_at
 `
 
 type CompleteRoleRunParams struct {
-	Status         string      `json:"status"`
-	ModelID        string      `json:"model_id"`
-	LatencyMs      int64       `json:"latency_ms"`
-	Usage          []byte      `json:"usage"`
-	ErrorCode      string      `json:"error_code"`
-	OwnerID        string      `json:"owner_id"`
-	CognitiveRunID pgtype.UUID `json:"cognitive_run_id"`
-	RoleRunID      pgtype.UUID `json:"role_run_id"`
+	Status                     string      `json:"status"`
+	ModelID                    string      `json:"model_id"`
+	LatencyMs                  int64       `json:"latency_ms"`
+	Usage                      []byte      `json:"usage"`
+	ErrorCode                  string      `json:"error_code"`
+	OwnerID                    string      `json:"owner_id"`
+	CognitiveRunID             pgtype.UUID `json:"cognitive_run_id"`
+	RoleRunID                  pgtype.UUID `json:"role_run_id"`
+	ExpectedPhase              string      `json:"expected_phase"`
+	ExpectedPerspective        string      `json:"expected_perspective"`
+	ExpectedInstructionID      string      `json:"expected_instruction_id"`
+	ExpectedInstructionVersion int32       `json:"expected_instruction_version"`
+	ExpectedInstructionHash    string      `json:"expected_instruction_hash"`
+	ExpectedManifestID         string      `json:"expected_manifest_id"`
+	ExpectedManifestVersion    int32       `json:"expected_manifest_version"`
+	ExpectedManifestHash       string      `json:"expected_manifest_hash"`
+	ExpectedManifestSource     string      `json:"expected_manifest_source"`
 }
 
 func (q *Queries) CompleteRoleRun(ctx context.Context, arg CompleteRoleRunParams) (RoleRun, error) {
@@ -87,6 +114,15 @@ func (q *Queries) CompleteRoleRun(ctx context.Context, arg CompleteRoleRunParams
 		arg.OwnerID,
 		arg.CognitiveRunID,
 		arg.RoleRunID,
+		arg.ExpectedPhase,
+		arg.ExpectedPerspective,
+		arg.ExpectedInstructionID,
+		arg.ExpectedInstructionVersion,
+		arg.ExpectedInstructionHash,
+		arg.ExpectedManifestID,
+		arg.ExpectedManifestVersion,
+		arg.ExpectedManifestHash,
+		arg.ExpectedManifestSource,
 	)
 	var i RoleRun
 	err := scanRoleRun(row.Scan, &i)
