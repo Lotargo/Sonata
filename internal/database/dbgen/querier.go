@@ -17,10 +17,13 @@ type Querier interface {
 	EnsureUser(context.Context, EnsureUserParams) (User, error)
 	GetCognitiveRun(context.Context, GetCognitiveRunParams) (CognitiveRun, error)
 	GetUserManifest(context.Context, GetUserManifestParams) (UserManifest, error)
+	GetUserManifestForUpdate(context.Context, GetUserManifestForUpdateParams) (UserManifest, error)
 	InsertManifestVersion(context.Context, InsertManifestVersionParams) (ManifestVersion, error)
 	InsertMessage(context.Context, InsertMessageParams) (Message, error)
 	ListConversationMessages(context.Context, ListConversationMessagesParams) ([]Message, error)
 	ListRoleRuns(context.Context, ListRoleRunsParams) ([]RoleRun, error)
+	LockUserManifestScope(context.Context, LockUserManifestScopeParams) error
+	NewManifestID(context.Context) (string, error)
 	UpsertConversation(context.Context, UpsertConversationParams) (Conversation, error)
 	UpsertUserManifest(context.Context, UpsertUserManifestParams) (UserManifest, error)
 }
