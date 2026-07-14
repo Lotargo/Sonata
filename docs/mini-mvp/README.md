@@ -15,9 +15,11 @@
 7. [`modules/EMOTION_MODULE.md`](./modules/EMOTION_MODULE.md) — границы и базовая интеграционная роль emotional layer.
 8. [`modules/AFFECTIVE_DYNAMICS.md`](./modules/AFFECTIVE_DYNAMICS.md) — принятая математическая и доменная спецификация affective dynamics engine; имеет приоритет над упрощённой transition-моделью `EMOTION_MODULE.md`.
 9. [`modules/RELATIONSHIP_RESPONSE.md`](./modules/RELATIONSHIP_RESPONSE.md) — bounded и versioned правило влияния отношений с пользователем на последующие emotional responses.
-10. [`modules/AFFECTIVE_GOLDEN_TRAJECTORIES.md`](./modules/AFFECTIVE_GOLDEN_TRAJECTORIES.md) — versioned verification contract, реализованные semantic trajectories и незакрытые сценарии stage 07B.
-11. [`decisions/OPENCODE_ZEN_PROVIDER.md`](./decisions/OPENCODE_ZEN_PROVIDER.md) — основной provider, общий master key и будущий BYOK.
-12. [`decisions/CONFIG_AND_SECRETS.md`](./decisions/CONFIG_AND_SECRETS.md) — единая загрузка конфигурации и секретов.
+10. [`modules/AFFECTIVE_GOLDEN_TRAJECTORIES.md`](./modules/AFFECTIVE_GOLDEN_TRAJECTORIES.md) — versioned verification contract и semantic/numeric trajectories stage 07B.
+11. [`modules/AFFECTIVE_REPORT_PROJECTION.md`](./modules/AFFECTIVE_REPORT_PROJECTION.md) — единая report version и разрешённая projection topology cognitive roles.
+12. [`modules/AFFECTIVE_HTTP_INTEGRATION.md`](./modules/AFFECTIVE_HTTP_INTEGRATION.md) — owner-scoped affective transition внутри trusted HTTP chat flow и graceful degradation.
+13. [`decisions/OPENCODE_ZEN_PROVIDER.md`](./decisions/OPENCODE_ZEN_PROVIDER.md) — основной provider, общий master key и будущий BYOK.
+14. [`decisions/CONFIG_AND_SECRETS.md`](./decisions/CONFIG_AND_SECRETS.md) — единая загрузка конфигурации и секретов.
 
 ## Правила для агентов
 
@@ -49,7 +51,9 @@ docs/mini-mvp/
 │   ├── EMOTION_MODULE.md
 │   ├── AFFECTIVE_DYNAMICS.md
 │   ├── RELATIONSHIP_RESPONSE.md
-│   └── AFFECTIVE_GOLDEN_TRAJECTORIES.md
+│   ├── AFFECTIVE_GOLDEN_TRAJECTORIES.md
+│   ├── AFFECTIVE_REPORT_PROJECTION.md
+│   └── AFFECTIVE_HTTP_INTEGRATION.md
 └── decisions/
     ├── OPENCODE_ZEN_PROVIDER.md
     └── CONFIG_AND_SECRETS.md
