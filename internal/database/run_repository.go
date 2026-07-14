@@ -40,15 +40,15 @@ type RoleRunStart struct {
 }
 
 type BeginCognitiveRunInput struct {
-	OwnerID          string
-	ConversationID   string
+	OwnerID           string
+	ConversationID    string
 	ConversationTitle string
-	MessageID        string
-	MessageContent   json.RawMessage
-	Route            cognition.Route
-	StartedAt        time.Time
-	Metadata         json.RawMessage
-	Roles            []RoleRunStart
+	MessageID         string
+	MessageContent    json.RawMessage
+	Route             cognition.Route
+	StartedAt         time.Time
+	Metadata          json.RawMessage
+	Roles             []RoleRunStart
 }
 
 type BegunCognitiveRun struct {
@@ -73,7 +73,7 @@ func (repository *RunRepository) BeginCognitiveRun(
 	if err != nil {
 		return BegunCognitiveRun{}, fmt.Errorf("begin cognitive run transaction: %w", err)
 	}
-	defer func() { _ = tx.Rollback(ctx) }()
+	defer func() { _ = tx.Rollback(context.Background()) }()
 	queries := repository.queries.WithTx(tx)
 
 	if _, err := queries.EnsureUser(ctx, dbgen.EnsureUserParams{
@@ -134,6 +134,7 @@ func (repository *RunRepository) BeginCognitiveRun(
 			ManifestID:         role.Manifest.ID,
 			ManifestVersion:    int32(role.Manifest.Version),
 			ManifestHash:       role.Manifest.Hash,
+			ManifestSource:     role.Manifest.Source,
 			LatencyMs:          0,
 			Usage:              []byte(`{}`),
 			ErrorCode:          "",
@@ -173,14 +174,22 @@ func validateBeginCognitiveRunInput(input BeginCognitiveRunInput) error {
 	if len(input.Metadata) > 0 && !json.Valid(input.Metadata) {
 		return errors.New("cognitive run metadata must be valid JSON")
 	}
+	if len(input.Roles) == 0 {
+		return errors.New("cognitive run requires at least one role")
+	}
+
 	seenRoles := make(map[cognition.RuntimeRole]struct{}, len(input.Roles))
 	for _, role := range input.Roles {
 		if _, exists := seenRoles[role.Role]; exists {
 			return fmt.Errorf("duplicate runtime role %q", role.Role)
 		}
 		seenRoles[role.Role] = struct{}{}
-		if _, exists := runtimeRoleSpec(role.Role); !exists {
+		spec, exists := runtimeRoleSpec(role.Role)
+		if !exists {
 			return fmt.Errorf("unknown runtime role %q", role.Role)
+		}
+		if strings.TrimSpace(role.ModelID) == "" {
+			return fmt.Errorf("role %s model ID is required", role.Role)
 		}
 		if role.Instruction.Version < 1 || role.Instruction.Version > math.MaxInt32 {
 			return fmt.Errorf("role %s instruction version is invalid", role.Role)
@@ -188,11 +197,26 @@ func validateBeginCognitiveRunInput(input BeginCognitiveRunInput) error {
 		if strings.TrimSpace(role.Instruction.ID) == "" || strings.TrimSpace(role.Instruction.Hash) == "" {
 			return fmt.Errorf("role %s instruction metadata is incomplete", role.Role)
 		}
+		if role.Instruction.ID != spec.InstructionID {
+			return fmt.Errorf(
+				"role %s instruction ID is %q, want %q",
+				role.Role,
+				role.Instruction.ID,
+				spec.InstructionID,
+			)
+		}
 		if role.Manifest.Version < 1 || role.Manifest.Version > math.MaxInt32 {
 			return fmt.Errorf("role %s manifest version is invalid", role.Role)
 		}
-		if strings.TrimSpace(role.Manifest.ID) == "" || strings.TrimSpace(role.Manifest.Hash) == "" || strings.TrimSpace(role.Manifest.Source) == "" {
+		if strings.TrimSpace(role.Manifest.ID) == "" ||
+			strings.TrimSpace(role.Manifest.Hash) == "" ||
+			strings.TrimSpace(role.Manifest.Source) == "" {
 			return fmt.Errorf("role %s manifest metadata is incomplete", role.Role)
+		}
+		switch role.Manifest.Source {
+		case "system_default", "user_global", "user_chat":
+		default:
+			return fmt.Errorf("role %s manifest source %q is invalid", role.Role, role.Manifest.Source)
 		}
 	}
 	return nil
