@@ -11,7 +11,7 @@ INSERT INTO sonata.manifest_versions (
 VALUES (
     sqlc.arg(manifest_id),
     sqlc.arg(version),
-    sqlc.arg(owner_id),
+    sqlc.narg(owner_id),
     sqlc.arg(source),
     sqlc.arg(content_hash),
     sqlc.arg(metadata)::jsonb,
