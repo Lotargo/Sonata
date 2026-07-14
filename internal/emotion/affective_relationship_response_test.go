@@ -26,12 +26,14 @@ func TestRelationshipResponseUsesNeutralSupportPoint(t *testing.T) {
 		PerceivedSafety:  0.5,
 	}
 	for _, emotion := range allEmotions {
-		modifier, err := relationshipResponse(relationshipResponseProfileV1, relationship, emotion)
-		if err != nil {
-			t.Fatalf("emotion %s: %v", emotion, err)
-		}
-		if math.Abs(modifier-1) > 1e-12 {
-			t.Fatalf("emotion %s neutral modifier = %f, want 1", emotion, modifier)
+		for _, direction := range []float64{-1, 0, 1} {
+			modifier, err := relationshipResponse(relationshipResponseProfileV1, relationship, emotion, direction)
+			if err != nil {
+				t.Fatalf("emotion %s direction %f: %v", emotion, direction, err)
+			}
+			if math.Abs(modifier-1) > 1e-12 {
+				t.Fatalf("emotion %s direction %f neutral modifier = %f, want 1", emotion, direction, modifier)
+			}
 		}
 	}
 }
@@ -55,18 +57,29 @@ func TestRelationshipResponseDistinguishesSupportAndStrain(t *testing.T) {
 	}
 
 	for _, emotion := range []Emotion{EmotionJoy, EmotionTrust, EmotionAnticipation} {
-		supportedModifier := mustRelationshipResponse(t, supported, emotion)
-		strainedModifier := mustRelationshipResponse(t, strained, emotion)
+		supportedModifier := mustRelationshipResponse(t, supported, emotion, 1)
+		strainedModifier := mustRelationshipResponse(t, strained, emotion, 1)
 		if supportedModifier <= strainedModifier {
-			t.Fatalf("emotion %s support did not increase response: supported=%f strained=%f", emotion, supportedModifier, strainedModifier)
+			t.Fatalf("emotion %s support did not increase positive response: supported=%f strained=%f", emotion, supportedModifier, strainedModifier)
 		}
 	}
 	for _, emotion := range []Emotion{EmotionFear, EmotionSadness, EmotionDisgust, EmotionAnger} {
-		supportedModifier := mustRelationshipResponse(t, supported, emotion)
-		strainedModifier := mustRelationshipResponse(t, strained, emotion)
+		supportedModifier := mustRelationshipResponse(t, supported, emotion, 1)
+		strainedModifier := mustRelationshipResponse(t, strained, emotion, 1)
 		if strainedModifier <= supportedModifier {
-			t.Fatalf("emotion %s strain did not increase response: supported=%f strained=%f", emotion, supportedModifier, strainedModifier)
+			t.Fatalf("emotion %s strain did not increase positive response: supported=%f strained=%f", emotion, supportedModifier, strainedModifier)
 		}
+	}
+
+	supportedTrustLoss := mustRelationshipResponse(t, supported, EmotionTrust, -1)
+	strainedTrustLoss := mustRelationshipResponse(t, strained, EmotionTrust, -1)
+	if supportedTrustLoss >= strainedTrustLoss {
+		t.Fatalf("support did not buffer negative trust delta: supported=%f strained=%f", supportedTrustLoss, strainedTrustLoss)
+	}
+	supportedAngerRelief := mustRelationshipResponse(t, supported, EmotionAnger, -1)
+	strainedAngerRelief := mustRelationshipResponse(t, strained, EmotionAnger, -1)
+	if supportedAngerRelief <= strainedAngerRelief {
+		t.Fatalf("support did not strengthen anger relief: supported=%f strained=%f", supportedAngerRelief, strainedAngerRelief)
 	}
 }
 
@@ -79,25 +92,30 @@ func TestRelationshipResponseClampsExtremeStates(t *testing.T) {
 		PerceivedSafety:  1,
 	}
 
-	if modifier := mustRelationshipResponse(t, extremeStrain, EmotionAnger); modifier != 1.5 {
+	if modifier := mustRelationshipResponse(t, extremeStrain, EmotionAnger, 1); modifier != 1.5 {
 		t.Fatalf("extreme anger modifier = %f, want 1.5", modifier)
 	}
-	if modifier := mustRelationshipResponse(t, extremeStrain, EmotionTrust); modifier != 0.5 {
+	if modifier := mustRelationshipResponse(t, extremeStrain, EmotionTrust, 1); modifier != 0.5 {
 		t.Fatalf("extreme trust modifier = %f, want 0.5", modifier)
+	}
+	if modifier := mustRelationshipResponse(t, extremeStrain, EmotionTrust, -1); modifier != 1.5 {
+		t.Fatalf("extreme negative trust modifier = %f, want 1.5", modifier)
 	}
 	for _, relationship := range []RelationshipState{extremeStrain, extremeSupport} {
 		for _, emotion := range allEmotions {
-			modifier := mustRelationshipResponse(t, relationship, emotion)
-			if modifier < 0.5 || modifier > 1.5 || math.IsNaN(modifier) || math.IsInf(modifier, 0) {
-				t.Fatalf("emotion %s modifier out of bounds: %f", emotion, modifier)
+			for _, direction := range []float64{-1, 0, 1} {
+				modifier := mustRelationshipResponse(t, relationship, emotion, direction)
+				if modifier < 0.5 || modifier > 1.5 || math.IsNaN(modifier) || math.IsInf(modifier, 0) {
+					t.Fatalf("emotion %s direction %f modifier out of bounds: %f", emotion, direction, modifier)
+				}
 			}
 		}
 	}
 }
 
-func mustRelationshipResponse(t *testing.T, relationship RelationshipState, emotion Emotion) float64 {
+func mustRelationshipResponse(t *testing.T, relationship RelationshipState, emotion Emotion, direction float64) float64 {
 	t.Helper()
-	modifier, err := relationshipResponse(relationshipResponseProfileV1, relationship, emotion)
+	modifier, err := relationshipResponse(relationshipResponseProfileV1, relationship, emotion, direction)
 	if err != nil {
 		t.Fatal(err)
 	}
