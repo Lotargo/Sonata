@@ -63,7 +63,7 @@ SET status = $1,
 WHERE owner_id = $6
   AND cognitive_run_id = $7
   AND id = $8
-RETURNING id, owner_id, cognitive_run_id, phase, perspective, status, model_id, instruction_id, instruction_version, instruction_hash, manifest_id, manifest_version, manifest_hash, latency_ms, usage, error_code, created_at
+RETURNING id, owner_id, cognitive_run_id, phase, perspective, status, model_id, instruction_id, instruction_version, instruction_hash, manifest_id, manifest_version, manifest_hash, manifest_source, latency_ms, usage, error_code, created_at
 `
 
 type CompleteRoleRunParams struct {
@@ -156,13 +156,14 @@ INSERT INTO sonata.role_runs (
     manifest_id,
     manifest_version,
     manifest_hash,
+    manifest_source,
     latency_ms,
     usage,
     error_code,
     created_at
 )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14::jsonb, $15, $16)
-RETURNING id, owner_id, cognitive_run_id, phase, perspective, status, model_id, instruction_id, instruction_version, instruction_hash, manifest_id, manifest_version, manifest_hash, latency_ms, usage, error_code, created_at
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15::jsonb, $16, $17)
+RETURNING id, owner_id, cognitive_run_id, phase, perspective, status, model_id, instruction_id, instruction_version, instruction_hash, manifest_id, manifest_version, manifest_hash, manifest_source, latency_ms, usage, error_code, created_at
 `
 
 type CreateRoleRunParams struct {
@@ -178,6 +179,7 @@ type CreateRoleRunParams struct {
 	ManifestID         string      `json:"manifest_id"`
 	ManifestVersion    int32       `json:"manifest_version"`
 	ManifestHash       string      `json:"manifest_hash"`
+	ManifestSource     string      `json:"manifest_source"`
 	LatencyMs          int64       `json:"latency_ms"`
 	Usage              []byte      `json:"usage"`
 	ErrorCode          string      `json:"error_code"`
@@ -198,6 +200,7 @@ func (q *Queries) CreateRoleRun(ctx context.Context, arg CreateRoleRunParams) (R
 		arg.ManifestID,
 		arg.ManifestVersion,
 		arg.ManifestHash,
+		arg.ManifestSource,
 		arg.LatencyMs,
 		arg.Usage,
 		arg.ErrorCode,
@@ -238,7 +241,7 @@ func (q *Queries) GetCognitiveRun(ctx context.Context, arg GetCognitiveRunParams
 }
 
 const listRoleRuns = `-- name: ListRoleRuns :many
-SELECT id, owner_id, cognitive_run_id, phase, perspective, status, model_id, instruction_id, instruction_version, instruction_hash, manifest_id, manifest_version, manifest_hash, latency_ms, usage, error_code, created_at
+SELECT id, owner_id, cognitive_run_id, phase, perspective, status, model_id, instruction_id, instruction_version, instruction_hash, manifest_id, manifest_version, manifest_hash, manifest_source, latency_ms, usage, error_code, created_at
 FROM sonata.role_runs
 WHERE owner_id = $1
   AND cognitive_run_id = $2
@@ -287,6 +290,7 @@ func scanRoleRun(scan scanFunction, item *RoleRun) error {
 		&item.ManifestID,
 		&item.ManifestVersion,
 		&item.ManifestHash,
+		&item.ManifestSource,
 		&item.LatencyMs,
 		&item.Usage,
 		&item.ErrorCode,
