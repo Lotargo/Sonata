@@ -185,6 +185,7 @@
 - [`modules/AFFECTIVE_DYNAMICS.md`](./modules/AFFECTIVE_DYNAMICS.md)
 - [`modules/RELATIONSHIP_RESPONSE.md`](./modules/RELATIONSHIP_RESPONSE.md)
 - [`modules/AFFECTIVE_GOLDEN_TRAJECTORIES.md`](./modules/AFFECTIVE_GOLDEN_TRAJECTORIES.md)
+- [`modules/AFFECTIVE_REPORT_PROJECTION.md`](./modules/AFFECTIVE_REPORT_PROJECTION.md)
 
 ### 07A. Реализованный v0 core
 
@@ -223,7 +224,7 @@
 - [x] Большой elapsed interval обрабатывается bounded способом без неограниченного tick loop.
 - [x] Добавлены golden trajectory, property, fuzz, replay и long-horizon tests.
 - [x] Зафиксированы versioned numeric snapshots positive/negative paths для `sonata-affective-v1.0.0`; полный CI подтверждён на head `a27fe66df7e476b0566afe2501434e4e8fbd0985`.
-- [ ] Один canonical report version проецируется только в Raw, Critical и Synthesis; Router исключён, Summary не получает отдельный report.
+- [x] Один canonical report version проецируется только в Raw, Critical и Synthesis; Router исключён, Summary не получает отдельный report. Полный CI подтверждён на head `0e43a04a537c24c1bbd905c0751365071d530f16`.
 - [ ] Affective module подключён к HTTP request flow только после выполнения требований v1.
 
 **Критерий этапа:** одинаковая последовательность versioned events даёт воспроизводимое bounded состояние; personality, physiology, drives и active complex states изменяют будущую динамику без зависимости от LLM.
