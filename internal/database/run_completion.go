@@ -143,7 +143,7 @@ func (repository *RunRepository) CompleteCognitiveRun(
 
 	completed, err := repository.queries.CompleteCognitiveRun(ctx, dbgen.CompleteCognitiveRunParams{
 		Status:         string(input.Status),
-		CompletedAt:    completedAt,
+		CompletedAt:    &completedAt,
 		Metadata:       metadata,
 		OwnerID:        ownerID,
 		CognitiveRunID: input.CognitiveRunID,
