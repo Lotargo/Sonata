@@ -168,24 +168,30 @@ load state version N
 
 **Статус: implemented, ожидает подтверждения полного CI.**
 
-Первый versioned fixture добавлен для сценария:
+Добавлены два парных versioned fixture для сценариев:
 
 ```text
 baseline at 2026-07-13T18:00:00Z
 -> user_warmth at the same timestamp
+
+baseline at 2026-07-13T18:00:00Z
+-> user_hostility at the same timestamp
 ```
 
 Файлы:
 
 - `internal/emotion/affective_numeric_snapshot_test.go`;
-- `internal/emotion/testdata/affective_numeric_v1_warmth.json`.
+- `internal/emotion/affective_numeric_hostility_snapshot_test.go`;
+- `internal/emotion/testdata/affective_numeric_v1_warmth.json`;
+- `internal/emotion/testdata/affective_numeric_v1_hostility.json`.
 
 Snapshot schema: `sonata-affective-numeric-snapshot-v1`.
 
-Fixture фиксирует:
+Fixtures фиксируют:
 
 - `profile_version` и state version;
 - полный emotion vector после direct effects и cross-emotion interactions;
+- positive и negative relationship-response paths, включая sign-aware trust loss;
 - physiology;
 - relationship;
 - drive level, satisfaction и urgency в каноническом порядке;
