@@ -1,0 +1,80 @@
+{
+  "schema_version": "sonata-affective-numeric-snapshot-v1",
+  "scenario": "hostility_at_baseline",
+  "profile_version": "sonata-affective-v1.0.0",
+  "state": {
+    "version": 1,
+    "last_updated_at": "2026-07-13T18:00:00Z",
+    "emotions": {
+      "joy": 0.35,
+      "trust": 0.272775938,
+      "fear": 0.10254925,
+      "surprise": 0.15,
+      "sadness": 0.1,
+      "disgust": 0.159556438,
+      "anger": 0.178514375,
+      "anticipation": 0.306775313
+    },
+    "physiology": {
+      "fatigue": 0.03,
+      "arousal": 0.35,
+      "energy": 0.96,
+      "stress_load": 0.18,
+      "stability": 0.92
+    },
+    "relationship": {
+      "attachment": 0,
+      "openness": 0.5,
+      "tension": 0.15,
+      "confidence_in_user": 0.5,
+      "perceived_safety": 0.38,
+      "unresolved_hurt": 0.1
+    },
+    "drives": [
+      {
+        "kind": "cognition",
+        "level": 0.7,
+        "satisfaction": 0.5,
+        "urgency": 0.35
+      },
+      {
+        "kind": "coherence",
+        "level": 0.7,
+        "satisfaction": 0.6,
+        "urgency": 0.28
+      },
+      {
+        "kind": "recovery",
+        "level": 0.5,
+        "satisfaction": 0.8,
+        "urgency": 0.1
+      },
+      {
+        "kind": "safety",
+        "level": 0.8,
+        "satisfaction": 0.35,
+        "urgency": 0.52
+      },
+      {
+        "kind": "social_connection",
+        "level": 0.6,
+        "satisfaction": 0.5,
+        "urgency": 0.3
+      }
+    ],
+    "complex_states": [],
+    "evidence_accumulators": []
+  },
+  "transition": {
+    "relationship_rule": "relationship-response-v1",
+    "from_version": 0,
+    "to_version": 1,
+    "elapsed_nanoseconds": 0,
+    "recovery_segments": 0,
+    "applied_stimuli": 1,
+    "integration_substeps": 0,
+    "stimulus_definitions": [
+      "stimulus-user-hostility-v1"
+    ]
+  }
+}
