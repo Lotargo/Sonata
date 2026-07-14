@@ -28,12 +28,16 @@ func relationshipResponse(
 	profileVersion string,
 	relationship RelationshipState,
 	emotion Emotion,
+	direction float64,
 ) (float64, error) {
 	if _, err := relationshipResponseRuleID(profileVersion); err != nil {
 		return 0, err
 	}
 	if !emotion.Valid() {
 		return 0, fmt.Errorf("invalid relationship response emotion %q", emotion)
+	}
+	if direction == 0 {
+		return 1, nil
 	}
 
 	weights, ok := relationshipResponseWeightsV1(emotion)
@@ -58,6 +62,10 @@ func relationshipResponse(
 	modifier := 1.0
 	modifier += weights.Support.Float64() * (support - 0.50)
 	modifier += weights.Strain.Float64() * strain
+	modifier = clampFloat(modifier, 0.50, 1.50)
+	if direction < 0 {
+		modifier = 2 - modifier
+	}
 	return clampFloat(modifier, 0.50, 1.50), nil
 }
 
