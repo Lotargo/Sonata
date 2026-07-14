@@ -23,6 +23,7 @@ func (function synthesisFinalRunnerFunc) RunSynthesisFinal(ctx context.Context, 
 func TestDirectPipelineRunsOnlyRouterAndSynthesisFinal(t *testing.T) {
 	var calls []RuntimeRole
 	var receivedFinal SynthesisFinalInput
+	emotion := validCanonicalEmotionReport()
 	router := routerRunnerFunc(func(_ context.Context, input RouterInput) (RouterRunResult, error) {
 		calls = append(calls, RoleRouter)
 		if input.UserInput != "hello" || len(input.History) != 1 {
@@ -54,6 +55,7 @@ func TestDirectPipelineRunsOnlyRouterAndSynthesisFinal(t *testing.T) {
 	result, err := pipeline.Run(context.Background(), DirectPipelineInput{
 		UserInput:        "hello",
 		History:          history,
+		Emotion:          emotion,
 		FinalInstruction: testArtifactRef("synthesis.final"),
 		FinalManifest:    testManifestRef("manifest.synthesis.final.default"),
 	})
@@ -72,8 +74,11 @@ func TestDirectPipelineRunsOnlyRouterAndSynthesisFinal(t *testing.T) {
 	if receivedFinal.Route != RouteDirect {
 		t.Fatalf("final route = %q", receivedFinal.Route)
 	}
-	if receivedFinal.Context.Text != "" || len(receivedFinal.Context.CitationIDs) != 0 || receivedFinal.Emotion != (EmotionReport{}) {
+	if receivedFinal.Context.Text != "" || len(receivedFinal.Context.CitationIDs) != 0 {
 		t.Fatalf("direct route received full-route context: %#v", receivedFinal)
+	}
+	if receivedFinal.Emotion != emotion {
+		t.Fatalf("direct synthesis received emotion report %#v, want %#v", receivedFinal.Emotion, emotion)
 	}
 	if len(receivedFinal.Dialogue.Branches) != 0 || receivedFinal.PreliminaryDecision != "" || len(receivedFinal.ToolResults) != 0 {
 		t.Fatalf("direct route received internal dialogue or tools: %#v", receivedFinal)
@@ -153,6 +158,7 @@ func TestDirectPipelineRejectsInvalidRoleMetadata(t *testing.T) {
 func validDirectPipelineInput() DirectPipelineInput {
 	return DirectPipelineInput{
 		UserInput:        "hello",
+		Emotion:          validCanonicalEmotionReport(),
 		FinalInstruction: testArtifactRef("synthesis.final"),
 		FinalManifest:    testManifestRef("manifest.synthesis.final.default"),
 	}
