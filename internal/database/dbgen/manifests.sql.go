@@ -56,6 +56,28 @@ func (q *Queries) GetUserManifest(ctx context.Context, arg GetUserManifestParams
 	return i, err
 }
 
+const getUserManifestForUpdate = `-- name: GetUserManifestForUpdate :one
+SELECT owner_id, scope, scope_id, manifest_id, version, status, content, content_hash, created_at, updated_at
+FROM sonata.user_manifests
+WHERE owner_id = $1
+  AND scope = $2
+  AND scope_id = $3
+FOR UPDATE
+`
+
+type GetUserManifestForUpdateParams struct {
+	OwnerID string `json:"owner_id"`
+	Scope   string `json:"scope"`
+	ScopeID string `json:"scope_id"`
+}
+
+func (q *Queries) GetUserManifestForUpdate(ctx context.Context, arg GetUserManifestForUpdateParams) (UserManifest, error) {
+	row := q.db.QueryRow(ctx, getUserManifestForUpdate, arg.OwnerID, arg.Scope, arg.ScopeID)
+	var i UserManifest
+	err := scanUserManifest(row.Scan, &i)
+	return i, err
+}
+
 const insertManifestVersion = `-- name: InsertManifestVersion :one
 INSERT INTO sonata.manifest_versions (
     manifest_id,
@@ -101,6 +123,37 @@ func (q *Queries) InsertManifestVersion(ctx context.Context, arg InsertManifestV
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const lockUserManifestScope = `-- name: LockUserManifestScope :exec
+SELECT pg_advisory_xact_lock(
+    hashtextextended(
+        $1 || E'\x1f' || $2 || E'\x1f' || $3,
+        0
+    )
+)
+`
+
+type LockUserManifestScopeParams struct {
+	OwnerID string `json:"owner_id"`
+	Scope   string `json:"scope"`
+	ScopeID string `json:"scope_id"`
+}
+
+func (q *Queries) LockUserManifestScope(ctx context.Context, arg LockUserManifestScopeParams) error {
+	_, err := q.db.Exec(ctx, lockUserManifestScope, arg.OwnerID, arg.Scope, arg.ScopeID)
+	return err
+}
+
+const newManifestID = `-- name: NewManifestID :one
+SELECT gen_random_uuid()::text AS manifest_id
+`
+
+func (q *Queries) NewManifestID(ctx context.Context) (string, error) {
+	row := q.db.QueryRow(ctx, newManifestID)
+	var manifestID string
+	err := row.Scan(&manifestID)
+	return manifestID, err
 }
 
 const upsertUserManifest = `-- name: UpsertUserManifest :one
