@@ -131,11 +131,11 @@ RETURNING owner_id, id, title, created_at, updated_at
 `
 
 type UpsertConversationParams struct {
-	OwnerID       string    `json:"owner_id"`
-	ConversationID string   `json:"conversation_id"`
-	Title         string    `json:"title"`
-	CreatedAt     time.Time `json:"created_at"`
-	UpdatedAt     time.Time `json:"updated_at"`
+	OwnerID        string    `json:"owner_id"`
+	ConversationID string    `json:"conversation_id"`
+	Title          string    `json:"title"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
 }
 
 func (q *Queries) UpsertConversation(ctx context.Context, arg UpsertConversationParams) (Conversation, error) {
