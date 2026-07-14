@@ -113,7 +113,6 @@ func TestManifestRepositorySerializesConcurrentScopeUpdates(t *testing.T) {
 	results := make(chan protectedcore.UserManifest, updates)
 	errorsChannel := make(chan error, updates)
 	for index := 0; index < updates; index++ {
-		index := index
 		wait.Add(1)
 		go func() {
 			defer wait.Done()
