@@ -166,7 +166,7 @@ func applyAffectiveStimulus(
 		dynamics := profile.Dynamics[index]
 		modifier := personalityResponse(profile.Personality, profile.PersonalityInfluences[index])
 		modifier *= physiologyResponse(state.Physiology, profile.PhysiologyInfluences[index])
-		relationshipModifier, err := relationshipResponse(profile.Version, state.Relationship, effect.Emotion)
+		relationshipModifier, err := relationshipResponse(profile.Version, state.Relationship, effect.Emotion, effect.Weight.Float64())
 		if err != nil {
 			return fmt.Errorf("calculate relationship response for %s: %w", effect.Emotion, err)
 		}
