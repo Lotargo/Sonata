@@ -10,6 +10,7 @@ import (
 
 type TransitionLog struct {
 	ProfileVersion      string
+	RelationshipRule    string
 	FromVersion         int64
 	ToVersion           int64
 	Elapsed             time.Duration
@@ -34,6 +35,10 @@ func Transition(
 ) (AffectiveState, TransitionLog, error) {
 	if err := profile.Validate(); err != nil {
 		return AffectiveState{}, TransitionLog{}, fmt.Errorf("validate runtime profile: %w", err)
+	}
+	relationshipRuleID, err := relationshipResponseRuleID(profile.Dynamics.Version)
+	if err != nil {
+		return AffectiveState{}, TransitionLog{}, fmt.Errorf("validate relationship response rule: %w", err)
 	}
 	if err := previous.Validate(); err != nil {
 		return AffectiveState{}, TransitionLog{}, fmt.Errorf("validate previous affective state: %w", err)
@@ -75,9 +80,10 @@ func Transition(
 
 	next := previous.Clone()
 	log := TransitionLog{
-		ProfileVersion: profile.Dynamics.Version,
-		FromVersion:    previous.Version,
-		Elapsed:        now.Sub(previous.LastUpdatedAt),
+		ProfileVersion:   profile.Dynamics.Version,
+		RelationshipRule: relationshipRuleID,
+		FromVersion:      previous.Version,
+		Elapsed:          now.Sub(previous.LastUpdatedAt),
 	}
 	cursor := previous.LastUpdatedAt
 	for _, event := range ordered {
@@ -160,6 +166,11 @@ func applyAffectiveStimulus(
 		dynamics := profile.Dynamics[index]
 		modifier := personalityResponse(profile.Personality, profile.PersonalityInfluences[index])
 		modifier *= physiologyResponse(state.Physiology, profile.PhysiologyInfluences[index])
+		relationshipModifier, err := relationshipResponse(profile.Version, state.Relationship, effect.Emotion)
+		if err != nil {
+			return fmt.Errorf("calculate relationship response for %s: %w", effect.Emotion, err)
+		}
+		modifier *= relationshipModifier
 		modifier *= activeEmotionMultiplier(*state, profile, effect.Emotion, effectGain)
 		delta := effect.Weight.Float64() * scale * dynamics.ExcitationGain.Float64() * modifier
 		if delta >= 0 {
