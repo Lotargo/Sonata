@@ -25,6 +25,7 @@ type SynthesisFinalRunner interface {
 type DirectPipelineInput struct {
 	UserInput        string
 	History          []ConversationMessage
+	Emotion          EmotionReport
 	FinalInstruction ArtifactRef
 	FinalManifest    ManifestRef
 }
@@ -60,6 +61,9 @@ func (pipeline *DirectPipeline) Run(ctx context.Context, input DirectPipelineInp
 	if strings.TrimSpace(input.UserInput) == "" {
 		return DirectPipelineResult{}, errors.New("direct pipeline user input is required")
 	}
+	if err := input.Emotion.Validate(); err != nil {
+		return DirectPipelineResult{}, fmt.Errorf("validate emotion report: %w", err)
+	}
 	finalArtifacts := RoleArtifacts{Instruction: input.FinalInstruction, Manifest: input.FinalManifest}
 	if err := validateRoleArtifacts(RoleSynthesisFinal, finalArtifacts); err != nil {
 		return DirectPipelineResult{}, err
@@ -88,6 +92,7 @@ func (pipeline *DirectPipeline) Run(ctx context.Context, input DirectPipelineInp
 		Route:       RouteDirect,
 		UserInput:   input.UserInput,
 		History:     cloneMessages(input.History),
+		Emotion:     input.Emotion,
 		Instruction: input.FinalInstruction,
 		Manifest:    input.FinalManifest,
 	})
