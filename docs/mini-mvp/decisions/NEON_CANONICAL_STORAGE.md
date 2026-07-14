@@ -1,7 +1,7 @@
 # Neon PostgreSQL canonical storage
 
 > Статус: first vertical slice implemented, ожидает полного CI  
-> Candidate implementation head: `e6fb6649eaa04a1f0553a2d87f7106ac2de6e032`  
+> Candidate implementation head: `4f8ab4871a81846fd4c0a450e55cfc11f1ed4849`  
 > Database schema: `sonata`  
 > Migration format: goose SQL
 
