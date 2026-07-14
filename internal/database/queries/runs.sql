@@ -17,16 +17,7 @@ VALUES (
     sqlc.arg(started_at),
     sqlc.arg(metadata)::jsonb
 )
-RETURNING
-    id::text AS id,
-    owner_id,
-    conversation_id,
-    request_message_id,
-    route,
-    status,
-    started_at,
-    completed_at,
-    metadata;
+RETURNING id, owner_id, conversation_id, request_message_id, route, status, started_at, completed_at, metadata;
 
 -- name: CreateRoleRun :one
 INSERT INTO sonata.role_runs (
@@ -49,7 +40,7 @@ INSERT INTO sonata.role_runs (
 )
 VALUES (
     sqlc.arg(owner_id),
-    sqlc.arg(cognitive_run_id)::uuid,
+    sqlc.arg(cognitive_run_id),
     sqlc.arg(phase),
     sqlc.arg(perspective),
     sqlc.arg(status),
@@ -65,24 +56,7 @@ VALUES (
     sqlc.arg(error_code),
     sqlc.arg(created_at)
 )
-RETURNING
-    id::text AS id,
-    owner_id,
-    cognitive_run_id::text AS cognitive_run_id,
-    phase,
-    perspective,
-    status,
-    model_id,
-    instruction_id,
-    instruction_version,
-    instruction_hash,
-    manifest_id,
-    manifest_version,
-    manifest_hash,
-    latency_ms,
-    usage,
-    error_code,
-    created_at;
+RETURNING id, owner_id, cognitive_run_id, phase, perspective, status, model_id, instruction_id, instruction_version, instruction_hash, manifest_id, manifest_version, manifest_hash, latency_ms, usage, error_code, created_at;
 
 -- name: CompleteRoleRun :one
 UPDATE sonata.role_runs
@@ -92,26 +66,9 @@ SET status = sqlc.arg(status),
     usage = sqlc.arg(usage)::jsonb,
     error_code = sqlc.arg(error_code)
 WHERE owner_id = sqlc.arg(owner_id)
-  AND cognitive_run_id = sqlc.arg(cognitive_run_id)::uuid
-  AND id = sqlc.arg(role_run_id)::uuid
-RETURNING
-    id::text AS id,
-    owner_id,
-    cognitive_run_id::text AS cognitive_run_id,
-    phase,
-    perspective,
-    status,
-    model_id,
-    instruction_id,
-    instruction_version,
-    instruction_hash,
-    manifest_id,
-    manifest_version,
-    manifest_hash,
-    latency_ms,
-    usage,
-    error_code,
-    created_at;
+  AND cognitive_run_id = sqlc.arg(cognitive_run_id)
+  AND id = sqlc.arg(role_run_id)
+RETURNING id, owner_id, cognitive_run_id, phase, perspective, status, model_id, instruction_id, instruction_version, instruction_hash, manifest_id, manifest_version, manifest_hash, latency_ms, usage, error_code, created_at;
 
 -- name: CompleteCognitiveRun :one
 UPDATE sonata.cognitive_runs
@@ -119,53 +76,18 @@ SET status = sqlc.arg(status),
     completed_at = sqlc.arg(completed_at),
     metadata = sqlc.arg(metadata)::jsonb
 WHERE owner_id = sqlc.arg(owner_id)
-  AND id = sqlc.arg(cognitive_run_id)::uuid
-RETURNING
-    id::text AS id,
-    owner_id,
-    conversation_id,
-    request_message_id,
-    route,
-    status,
-    started_at,
-    completed_at,
-    metadata;
+  AND id = sqlc.arg(cognitive_run_id)
+RETURNING id, owner_id, conversation_id, request_message_id, route, status, started_at, completed_at, metadata;
 
 -- name: GetCognitiveRun :one
-SELECT
-    id::text AS id,
-    owner_id,
-    conversation_id,
-    request_message_id,
-    route,
-    status,
-    started_at,
-    completed_at,
-    metadata
+SELECT id, owner_id, conversation_id, request_message_id, route, status, started_at, completed_at, metadata
 FROM sonata.cognitive_runs
 WHERE owner_id = sqlc.arg(owner_id)
-  AND id = sqlc.arg(cognitive_run_id)::uuid;
+  AND id = sqlc.arg(cognitive_run_id);
 
 -- name: ListRoleRuns :many
-SELECT
-    id::text AS id,
-    owner_id,
-    cognitive_run_id::text AS cognitive_run_id,
-    phase,
-    perspective,
-    status,
-    model_id,
-    instruction_id,
-    instruction_version,
-    instruction_hash,
-    manifest_id,
-    manifest_version,
-    manifest_hash,
-    latency_ms,
-    usage,
-    error_code,
-    created_at
+SELECT id, owner_id, cognitive_run_id, phase, perspective, status, model_id, instruction_id, instruction_version, instruction_hash, manifest_id, manifest_version, manifest_hash, latency_ms, usage, error_code, created_at
 FROM sonata.role_runs
 WHERE owner_id = sqlc.arg(owner_id)
-  AND cognitive_run_id = sqlc.arg(cognitive_run_id)::uuid
+  AND cognitive_run_id = sqlc.arg(cognitive_run_id)
 ORDER BY created_at, id;
