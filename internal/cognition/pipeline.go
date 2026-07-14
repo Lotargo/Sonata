@@ -3,6 +3,7 @@ package cognition
 import (
 	"context"
 	"errors"
+	"fmt"
 )
 
 type PipelineInput struct {
@@ -50,6 +51,9 @@ func (pipeline *Pipeline) Run(ctx context.Context, input PipelineInput) (Pipelin
 	if pipeline == nil || pipeline.direct == nil || pipeline.full == nil {
 		return PipelineResult{}, errors.New("cognitive pipeline is not initialized")
 	}
+	if err := input.Emotion.Validate(); err != nil {
+		return PipelineResult{}, fmt.Errorf("validate emotion report: %w", err)
+	}
 	finalArtifacts, err := requireRoleArtifacts(input.Artifacts, RoleSynthesisFinal)
 	if err != nil {
 		return PipelineResult{}, err
@@ -57,6 +61,7 @@ func (pipeline *Pipeline) Run(ctx context.Context, input PipelineInput) (Pipelin
 	directResult, err := pipeline.direct.Run(ctx, DirectPipelineInput{
 		UserInput:        input.UserInput,
 		History:          cloneMessages(input.History),
+		Emotion:          input.Emotion,
 		FinalInstruction: finalArtifacts.Instruction,
 		FinalManifest:    finalArtifacts.Manifest,
 	})
