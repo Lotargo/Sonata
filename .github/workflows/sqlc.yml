@@ -1,0 +1,53 @@
+name: SQLC CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sqlc-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    name: Generate typed SQL bindings
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: go.sum
+
+      - name: Install sqlc
+        env:
+          GOFLAGS: ""
+        run: go install github.com/sqlc-dev/sqlc/cmd/sqlc@v1.31.1
+
+      - name: Generate and vet queries
+        run: |
+          sqlc generate
+          sqlc vet
+
+      - name: Verify generated package compiles
+        run: go test ./internal/database/...
+
+      - name: Verify generated formatting
+        run: |
+          unformatted="$(gofmt -l internal/database/dbgen)"
+          if [ -n "$unformatted" ]; then
+            printf 'The following generated files are not formatted:\n%s\n' "$unformatted"
+            exit 1
+          fi
