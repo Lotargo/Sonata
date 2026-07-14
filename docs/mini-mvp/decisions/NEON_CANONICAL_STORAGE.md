@@ -1,15 +1,16 @@
 # Neon PostgreSQL canonical storage
 
-> Статус: first vertical slice implemented, ожидает полного CI  
-> Candidate implementation head: `4f8ab4871a81846fd4c0a450e55cfc11f1ed4849`  
+> Статус: second vertical slice implemented, ожидает подтверждения полного CI  
+> Candidate implementation head: `70df16d130ffcd8f50ed278458a37b0fa734a823`  
 > Database schema: `sonata`  
-> Migration format: goose SQL
+> Migration format: goose SQL  
+> Query generation: sqlc `v1.31.1`, pgx/v5
 
 ## 1. Назначение
 
 Neon PostgreSQL является canonical source of truth Sonata mini MVP.
 
-Первый storage increment создаёт стабильную границу для следующих этапов:
+Текущий storage boundary:
 
 ```text
 logical secret refs
@@ -17,14 +18,15 @@ logical secret refs
 -> pgxpool runtime connection
 -> versioned goose migrations
 -> owner-scoped relational schema
--> transactional affective CAS repository
+-> sqlc typed queries
+-> transactional repositories
 ```
 
 Qdrant, River и последующие API работают поверх этой canonical schema и не становятся владельцами исходных данных.
 
 ## 2. Разделение подключений
 
-Configuration уже содержит два независимых logical refs:
+Configuration содержит два независимых logical refs:
 
 ```text
 storage.database.url_ref
@@ -35,7 +37,7 @@ storage.database.direct_url_ref
 
 - runtime API и Worker используют `DATABASE_URL` через `pgxpool`;
 - migrations и maintenance используют `DATABASE_DIRECT_URL`;
-- local/CI могут временно использовать одну и ту же direct PostgreSQL строку в обеих переменных;
+- local/CI могут временно использовать одну direct PostgreSQL строку в обеих переменных;
 - staging/production должны использовать pooled Neon endpoint для `DATABASE_URL` и direct endpoint для `DATABASE_DIRECT_URL`.
 
 Raw connection strings не сохраняются в logs, errors или documentation snapshots.
@@ -69,8 +71,9 @@ internal/database/migrations/
 
 1. `00001_canonical_schema.sql` создаёт extension, schema, таблицы, indexes и базовые constraints.
 2. `00002_owner_invariants.sql` усиливает составные owner boundaries для manifests, role runs, tool calls, provider usage и memory items.
+3. `00003_role_manifest_source.sql` сохраняет полный `ManifestRef.Source` каждого role run.
 
-GitHub Actions поднимает PostgreSQL 16, применяет обе migrations через pinned `goose`, затем запускает unit, race и database integration tests.
+GitHub Actions `Go CI` поднимает PostgreSQL 16, применяет migrations через pinned `goose`, затем запускает unit, race и database integration tests.
 
 ## 5. Canonical entities
 
@@ -111,11 +114,109 @@ tool_call(owner_id, cognitive_run_id, role_run_id)
 -> role_run(owner_id, cognitive_run_id, id)
 ```
 
-Поэтому ошибочный или скомпрометированный repository method не может привязать child row к parent другого владельца простой подменой ID.
+Поэтому repository method не может привязать child row к parent другого владельца простой подменой ID.
 
-## 7. Affective persistence
+## 7. sqlc query layer
 
-`PostgresAffectiveStateStore` реализует существующий `emotion.AffectiveStateStore`.
+Configuration:
+
+```text
+sqlc.yaml
+schema  -> internal/database/migrations
+queries -> internal/database/queries
+output  -> internal/database/dbgen
+runtime -> pgx/v5
+```
+
+Query groups:
+
+- `core.sql`: users, conversations и messages;
+- `runs.sql`: cognitive runs и role runs;
+- `manifests.sql`: versioned user manifests и scope locks.
+
+Generated bindings хранятся в repository, поэтому обычная Go-сборка не зависит от установленного `sqlc` CLI.
+
+Отдельный `SQLC CI`:
+
+```text
+sqlc generate
+-> sqlc vet
+-> go test ./internal/database/...
+-> generated gofmt check
+```
+
+Он проверяет query/schema consistency независимо от PostgreSQL integration job.
+
+## 8. Cognitive run transaction
+
+`RunRepository.BeginCognitiveRun` фиксирует одной PostgreSQL transaction:
+
+```text
+ensure user
+-> upsert conversation
+-> insert request message
+-> create cognitive run
+-> create related role runs
+-> commit
+```
+
+Инварианты:
+
+- owner, conversation и message IDs обязательны;
+- message и metadata должны быть valid JSON;
+- route проходит typed validation;
+- role IDs уникальны внутри input;
+- model ID обязателен;
+- instruction ID обязан совпадать с canonical `RuntimeRoleSpec`;
+- instruction и manifest versions положительны;
+- manifest source сохраняется как `system_default | user_global | user_chat`;
+- phase и perspective выводятся repository из canonical role spec, а не принимаются от caller;
+- request cancellation не мешает deferred rollback освободить transaction.
+
+Integration test намеренно создаёт duplicate message conflict после conversation upsert и подтверждает, что conversation и cognitive run полностью откатываются.
+
+## 9. Versioned user manifests
+
+`ManifestRepository` использует тот же normalizer, что runtime resolver:
+
+```text
+UTF-8 validation
+-> CRLF normalization
+-> Unicode NFC
+-> trim
+-> byte limit
+-> SHA-256
+```
+
+PUT и DELETE одного owner/scope выполняются под transaction-level advisory lock.
+
+Одна версия выполняет:
+
+```text
+ensure user
+-> lock owner/scope
+-> lock current manifest row
+-> allocate stable manifest ID when absent
+-> increment version exactly once
+-> insert immutable manifest_versions metadata
+-> update current user_manifests row
+-> commit
+```
+
+Soft delete создаёт новую version со статусом `deleted`, очищает current content и немедленно позволяет resolver вернуться к следующему manifest по приоритету.
+
+Integration tests проверяют:
+
+- stable manifest ID;
+- PUT versions `1 -> 2`;
+- DELETE version `3`;
+- normalized content hash;
+- owner isolation;
+- восемь конкурентных updates одного chat scope получают уникальные последовательные versions без orphaned current row.
+
+## 10. Affective persistence
+
+`PostgresAffectiveStateStore` реализует `emotion.AffectiveStateStore`.
 
 Одна transaction выполняет:
 
@@ -131,32 +232,25 @@ ensure canonical user
 - stale expected version возвращает `emotion.ErrVersionConflict`;
 - state version увеличивается ровно на один;
 - JSON state envelope проверяется против indexed columns при чтении;
-- timestamps нормализуются до PostgreSQL microsecond precision до serialization;
+- timestamps нормализуются до PostgreSQL microsecond precision;
 - raw message text не записывается в affective state/event payload.
 
-## 8. Verification
+## 11. CI status
 
-Database integration tests требуют `SONATA_TEST_DATABASE_URL` и проверяют:
+GitHub connector в текущей сессии возвращает пустой commit-status result и показывает только pull-request-triggered workflow runs. Репозиторий работает через push-to-main workflows, поэтому фактический conclusion текущего push run через доступный API не подтверждён.
 
-- database migrations применены;
-- cross-owner message insert блокируется PostgreSQL foreign key;
-- affective state version 1 создаётся через CAS;
-- stale CAS отклоняется;
-- version 2 атомарно заменяет state;
-- каждой подтверждённой версии соответствует affective event.
+По этой причине checklist stage 08 остаётся открытым, даже несмотря на реализованные code paths и tests.
 
-В GitHub Actions переменная направлена на изолированный PostgreSQL service текущего CI job.
+## 12. Следующий increment
 
-## 9. Следующий increment
+Stage 08 ещё требует:
 
-Этот срез не закрывает stage 08 целиком. Далее требуются:
-
-- `sqlc` configuration и generated query layer;
-- repositories для conversations, messages, cognitive/role runs и manifests;
-- transaction boundary cognitive run + role runs;
+- completion methods и transaction policy для итоговых cognitive/role statuses;
+- repositories для tool calls, provider usage и outbox;
+- persistence protected artifact metadata;
 - запуск migrations через deployment/pre-deploy command;
-- wiring runtime API к `pgxpool` и Postgres affective store;
-- дополнительные integration tests ownership и rollback;
-- проверка на реальной Neon branch перед staging.
+- wiring runtime API к `pgxpool`, Postgres affective store и repositories;
+- проверку на реальной Neon branch перед staging;
+- подтверждённый зелёный полный CI для implementation head.
 
-Checkboxes stage 08 отмечаются только после зелёного полного CI соответствующего implementation head.
+Checkboxes stage 08 отмечаются только после доступного и однозначного результата соответствующего workflow run.
