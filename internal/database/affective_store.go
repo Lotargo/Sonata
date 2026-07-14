@@ -30,7 +30,7 @@ func (store *PostgresAffectiveStateStore) Load(
 	key emotion.StateKey,
 ) (emotion.AffectiveState, bool, error) {
 	if store == nil || store.pool == nil {
-		return emotion.AffectiveState{}, false, errors.New("Postgres affective store is not initialized")
+		return emotion.AffectiveState{}, false, errors.New("postgres affective store is not initialized")
 	}
 	if err := key.Validate(); err != nil {
 		return emotion.AffectiveState{}, false, err
@@ -74,7 +74,7 @@ func (store *PostgresAffectiveStateStore) CompareAndSwap(
 	next emotion.AffectiveState,
 ) error {
 	if store == nil || store.pool == nil {
-		return errors.New("Postgres affective store is not initialized")
+		return errors.New("postgres affective store is not initialized")
 	}
 	if err := key.Validate(); err != nil {
 		return err
