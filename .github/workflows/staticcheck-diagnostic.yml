@@ -1,0 +1,47 @@
+name: Staticcheck Diagnostic
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: staticcheck-diagnostic-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  staticcheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: go.sum
+
+      - name: Install staticcheck
+        env:
+          GOFLAGS: ""
+        run: go install honnef.co/go/tools/cmd/staticcheck@latest
+
+      - name: Run staticcheck
+        id: staticcheck
+        run: |
+          set -o pipefail
+          staticcheck ./... 2>&1 | tee staticcheck.log
+
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: staticcheck-log
+          path: staticcheck.log
+          retention-days: 1
