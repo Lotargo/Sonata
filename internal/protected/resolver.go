@@ -157,7 +157,7 @@ func (r *ManifestResolver) resolveUser(manifest *UserManifest, ownerID string, s
 	default:
 		return ResolvedManifest{}, false, fmt.Errorf("user manifest %s has unsupported status %q", manifest.ID, manifest.Status)
 	}
-	content, err := normalizeUserManifest(manifest.Content, r.maxUserManifestBytes)
+	content, err := NormalizeUserManifest(manifest.Content, r.maxUserManifestBytes)
 	if err != nil {
 		return ResolvedManifest{}, false, fmt.Errorf("user manifest %s: %w", manifest.ID, err)
 	}
@@ -179,7 +179,10 @@ func (r *ManifestResolver) resolveUser(manifest *UserManifest, ownerID string, s
 	}, true, nil
 }
 
-func normalizeUserManifest(value string, maximum int) (string, error) {
+// NormalizeUserManifest applies the same UTF-8, newline, Unicode NFC, trimming
+// and byte-limit policy used by the runtime resolver. Storage and API layers
+// must call this function before hashing or persisting user manifest content.
+func NormalizeUserManifest(value string, maximum int) (string, error) {
 	if len(value) > maximum {
 		return "", fmt.Errorf("content exceeds %d bytes", maximum)
 	}
