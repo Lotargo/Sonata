@@ -21,10 +21,32 @@ Internet
 Blueprint:
 
 - собирает `cmd/sonata` как один Go binary;
-- запускает `sonata api` с profile `production`;
+- во время build устанавливает отдельный pinned `goose v3.27.2` в `./bin`;
+- перед каждым start применяет canonical migrations из `internal/database/migrations`;
+- запускает `sonata api` с profile `production` только после успешных migrations;
 - использует `/internal/health/ready` как health check;
 - даёт приложению время на graceful shutdown;
 - подключает одну environment group `sonata-runtime-secrets`.
+
+Migration boundary:
+
+```text
+buildCommand
+-> build ./bin/sonata
+-> install ./bin/goose@v3.27.2
+
+preDeployCommand
+-> ./bin/goose
+-> internal/database/migrations
+-> postgres "$DATABASE_DIRECT_URL" up
+
+startCommand
+-> ./bin/sonata api --profile production
+```
+
+Migrations используют только direct connection `DATABASE_DIRECT_URL`. Pooled runtime connection `DATABASE_URL` предназначен для API и будущего Worker и не должен использоваться migration process.
+
+Ошибка migration завершает pre-deploy command с ненулевым status и блокирует запуск новой версии Sonata. Приложение не должно стартовать поверх частично или неуспешно обновлённой schema.
 
 При первом создании Blueprint оператор вводит значения, помеченные `sync: false`. `OPENWEBUI_INTERNAL_SECRET` генерируется Render и не хранится в repository.
 
@@ -70,6 +92,9 @@ ENABLE_FORWARD_USER_INFO_HEADERS=true
 - Sonata остаётся private Go service;
 - OpenWebUI остаётся public service;
 - image OpenWebUI закреплён по версии;
+- Sonata build создаёт application binary и pinned `goose` binary;
+- pre-deploy command применяет canonical migrations через `DATABASE_DIRECT_URL`;
+- pooled `DATABASE_URL` не используется migration process;
 - OpenWebUI подключён только к private Sonata address;
 - internal credential не записан в repository;
 - встроенная memory и Ollama API отключены;
@@ -83,10 +108,12 @@ ENABLE_FORWARD_USER_INFO_HEADERS=true
 Нужно проверить:
 
 1. У `sonata-api` отсутствует публичный URL.
-2. `/internal/health/live` и `/internal/health/ready` доступны OpenWebUI внутри private network.
-3. `/v1/models` без service credential возвращает `401`.
-4. OpenWebUI показывает только модель `sonata`.
-5. Streaming chat заканчивается `data: [DONE]`.
-6. Подмена `X-OpenWebUI-*` без service credential не проходит.
-7. Memory OpenWebUI отсутствует в пользовательском интерфейсе и не сохраняет параллельные воспоминания.
-8. В OpenWebUI отсутствуют direct OpenCode Zen или другие provider models.
+2. Pre-deploy logs показывают успешное применение или отсутствие pending migrations.
+3. При намеренно invalid migration новая версия не запускается, а предыдущая продолжает обслуживать requests.
+4. `/internal/health/live` и `/internal/health/ready` доступны OpenWebUI внутри private network.
+5. `/v1/models` без service credential возвращает `401`.
+6. OpenWebUI показывает только модель `sonata`.
+7. Streaming chat заканчивается `data: [DONE]`.
+8. Подмена `X-OpenWebUI-*` без service credential не проходит.
+9. Memory OpenWebUI отсутствует в пользовательском интерфейсе и не сохраняет параллельные воспоминания.
+10. В OpenWebUI отсутствуют direct OpenCode Zen или другие provider models.
