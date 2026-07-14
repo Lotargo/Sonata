@@ -25,6 +25,10 @@ sql:
           sonata_role_run: RoleRun
           sonata_user: User
           sonata_user_manifest: UserManifest
+          sonata_instruction_version: InstructionVersion
+          sonata_outbox_event: OutboxEvent
+          sonata_provider_usage: ProviderUsage
+          sonata_tool_call: ToolCall
         overrides:
           - db_type: timestamptz
             go_type:

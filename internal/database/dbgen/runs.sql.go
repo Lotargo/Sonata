@@ -158,6 +158,51 @@ func (q *Queries) CompleteRoleRun(ctx context.Context, arg CompleteRoleRunParams
 	return i, err
 }
 
+const completeToolCall = `-- name: CompleteToolCall :one
+UPDATE sonata.tool_calls
+SET status = $1,
+    result_metadata = $2::jsonb,
+    completed_at = $3
+WHERE owner_id = $4
+  AND cognitive_run_id = $5
+  AND id = $6
+RETURNING id, owner_id, cognitive_run_id, role_run_id, tool_name, status, request_metadata, result_metadata, created_at, completed_at
+`
+
+type CompleteToolCallParams struct {
+	Status         string      `json:"status"`
+	ResultMetadata []byte      `json:"result_metadata"`
+	CompletedAt    *time.Time  `json:"completed_at"`
+	OwnerID        string      `json:"owner_id"`
+	CognitiveRunID pgtype.UUID `json:"cognitive_run_id"`
+	ToolCallID     pgtype.UUID `json:"tool_call_id"`
+}
+
+func (q *Queries) CompleteToolCall(ctx context.Context, arg CompleteToolCallParams) (ToolCall, error) {
+	row := q.db.QueryRow(ctx, completeToolCall,
+		arg.Status,
+		arg.ResultMetadata,
+		arg.CompletedAt,
+		arg.OwnerID,
+		arg.CognitiveRunID,
+		arg.ToolCallID,
+	)
+	var i ToolCall
+	err := row.Scan(
+		&i.ID,
+		&i.OwnerID,
+		&i.CognitiveRunID,
+		&i.RoleRunID,
+		&i.ToolName,
+		&i.Status,
+		&i.RequestMetadata,
+		&i.ResultMetadata,
+		&i.CreatedAt,
+		&i.CompletedAt,
+	)
+	return i, err
+}
+
 const createCognitiveRun = `-- name: CreateCognitiveRun :one
 INSERT INTO sonata.cognitive_runs (
     owner_id,
@@ -350,6 +395,134 @@ func (q *Queries) GetCognitiveRun(ctx context.Context, arg GetCognitiveRunParams
 	return i, err
 }
 
+const insertProviderUsage = `-- name: InsertProviderUsage :one
+INSERT INTO sonata.provider_usage (
+    owner_id,
+    cognitive_run_id,
+    role_run_id,
+    provider,
+    model_id,
+    input_tokens,
+    output_tokens,
+    cached_tokens,
+    created_at
+)
+VALUES (
+    $1,
+    $2,
+    $3,
+    $4,
+    $5,
+    $6,
+    $7,
+    $8,
+    $9
+)
+RETURNING id, owner_id, cognitive_run_id, role_run_id, provider, model_id, input_tokens, output_tokens, cached_tokens, created_at
+`
+
+type InsertProviderUsageParams struct {
+	OwnerID        string      `json:"owner_id"`
+	CognitiveRunID pgtype.UUID `json:"cognitive_run_id"`
+	RoleRunID      pgtype.UUID `json:"role_run_id"`
+	Provider       string      `json:"provider"`
+	ModelID        string      `json:"model_id"`
+	InputTokens    int64       `json:"input_tokens"`
+	OutputTokens   int64       `json:"output_tokens"`
+	CachedTokens   int64       `json:"cached_tokens"`
+	CreatedAt      time.Time   `json:"created_at"`
+}
+
+func (q *Queries) InsertProviderUsage(ctx context.Context, arg InsertProviderUsageParams) (ProviderUsage, error) {
+	row := q.db.QueryRow(ctx, insertProviderUsage,
+		arg.OwnerID,
+		arg.CognitiveRunID,
+		arg.RoleRunID,
+		arg.Provider,
+		arg.ModelID,
+		arg.InputTokens,
+		arg.OutputTokens,
+		arg.CachedTokens,
+		arg.CreatedAt,
+	)
+	var i ProviderUsage
+	err := row.Scan(
+		&i.ID,
+		&i.OwnerID,
+		&i.CognitiveRunID,
+		&i.RoleRunID,
+		&i.Provider,
+		&i.ModelID,
+		&i.InputTokens,
+		&i.OutputTokens,
+		&i.CachedTokens,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const insertToolCall = `-- name: InsertToolCall :one
+INSERT INTO sonata.tool_calls (
+    owner_id,
+    cognitive_run_id,
+    role_run_id,
+    tool_name,
+    status,
+    request_metadata,
+    result_metadata,
+    created_at
+)
+VALUES (
+    $1,
+    $2,
+    $3,
+    $4,
+    $5,
+    $6::jsonb,
+    $7::jsonb,
+    $8
+)
+RETURNING id, owner_id, cognitive_run_id, role_run_id, tool_name, status, request_metadata, result_metadata, created_at, completed_at
+`
+
+type InsertToolCallParams struct {
+	OwnerID         string      `json:"owner_id"`
+	CognitiveRunID  pgtype.UUID `json:"cognitive_run_id"`
+	RoleRunID       pgtype.UUID `json:"role_run_id"`
+	ToolName        string      `json:"tool_name"`
+	Status          string      `json:"status"`
+	RequestMetadata []byte      `json:"request_metadata"`
+	ResultMetadata  []byte      `json:"result_metadata"`
+	CreatedAt       time.Time   `json:"created_at"`
+}
+
+func (q *Queries) InsertToolCall(ctx context.Context, arg InsertToolCallParams) (ToolCall, error) {
+	row := q.db.QueryRow(ctx, insertToolCall,
+		arg.OwnerID,
+		arg.CognitiveRunID,
+		arg.RoleRunID,
+		arg.ToolName,
+		arg.Status,
+		arg.RequestMetadata,
+		arg.ResultMetadata,
+		arg.CreatedAt,
+	)
+	var i ToolCall
+	err := row.Scan(
+		&i.ID,
+		&i.OwnerID,
+		&i.CognitiveRunID,
+		&i.RoleRunID,
+		&i.ToolName,
+		&i.Status,
+		&i.RequestMetadata,
+		&i.ResultMetadata,
+		&i.CreatedAt,
+		&i.CompletedAt,
+	)
+	return i, err
+}
+
 const listRoleRuns = `-- name: ListRoleRuns :many
 SELECT id, owner_id, cognitive_run_id, phase, perspective, status, model_id, instruction_id, instruction_version, instruction_hash, manifest_id, manifest_version, manifest_hash, latency_ms, usage, error_code, created_at, manifest_source
 FROM sonata.role_runs
@@ -391,6 +564,50 @@ func (q *Queries) ListRoleRuns(ctx context.Context, arg ListRoleRunsParams) ([]R
 			&i.ErrorCode,
 			&i.CreatedAt,
 			&i.ManifestSource,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listToolCalls = `-- name: ListToolCalls :many
+SELECT id, owner_id, cognitive_run_id, role_run_id, tool_name, status, request_metadata, result_metadata, created_at, completed_at
+FROM sonata.tool_calls
+WHERE owner_id = $1
+  AND cognitive_run_id = $2
+ORDER BY created_at, id
+`
+
+type ListToolCallsParams struct {
+	OwnerID        string      `json:"owner_id"`
+	CognitiveRunID pgtype.UUID `json:"cognitive_run_id"`
+}
+
+func (q *Queries) ListToolCalls(ctx context.Context, arg ListToolCallsParams) ([]ToolCall, error) {
+	rows, err := q.db.Query(ctx, listToolCalls, arg.OwnerID, arg.CognitiveRunID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ToolCall{}
+	for rows.Next() {
+		var i ToolCall
+		if err := rows.Scan(
+			&i.ID,
+			&i.OwnerID,
+			&i.CognitiveRunID,
+			&i.RoleRunID,
+			&i.ToolName,
+			&i.Status,
+			&i.RequestMetadata,
+			&i.ResultMetadata,
+			&i.CreatedAt,
+			&i.CompletedAt,
 		); err != nil {
 			return nil, err
 		}

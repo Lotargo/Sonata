@@ -10,21 +10,31 @@ import (
 
 type Querier interface {
 	CompleteCognitiveRun(ctx context.Context, arg CompleteCognitiveRunParams) (CognitiveRun, error)
+	CompleteOutboxEvent(ctx context.Context, arg CompleteOutboxEventParams) (CompleteOutboxEventRow, error)
 	CompleteRoleRun(ctx context.Context, arg CompleteRoleRunParams) (RoleRun, error)
+	CompleteToolCall(ctx context.Context, arg CompleteToolCallParams) (ToolCall, error)
 	CreateCognitiveRun(ctx context.Context, arg CreateCognitiveRunParams) (CognitiveRun, error)
 	CreateRoleRun(ctx context.Context, arg CreateRoleRunParams) (RoleRun, error)
 	DeleteUserManifest(ctx context.Context, arg DeleteUserManifestParams) (UserManifest, error)
 	EnsureUser(ctx context.Context, arg EnsureUserParams) (User, error)
+	FailOutboxEvent(ctx context.Context, arg FailOutboxEventParams) (FailOutboxEventRow, error)
 	GetCognitiveRun(ctx context.Context, arg GetCognitiveRunParams) (CognitiveRun, error)
+	GetInstructionVersion(ctx context.Context, arg GetInstructionVersionParams) (InstructionVersion, error)
 	GetUserManifest(ctx context.Context, arg GetUserManifestParams) (UserManifest, error)
 	GetUserManifestForUpdate(ctx context.Context, arg GetUserManifestForUpdateParams) (UserManifest, error)
 	InsertManifestVersion(ctx context.Context, arg InsertManifestVersionParams) (ManifestVersion, error)
 	InsertMessage(ctx context.Context, arg InsertMessageParams) (Message, error)
+	InsertOutboxEvent(ctx context.Context, arg InsertOutboxEventParams) (OutboxEvent, error)
+	InsertProviderUsage(ctx context.Context, arg InsertProviderUsageParams) (ProviderUsage, error)
+	InsertToolCall(ctx context.Context, arg InsertToolCallParams) (ToolCall, error)
 	ListConversationMessages(ctx context.Context, arg ListConversationMessagesParams) ([]Message, error)
 	ListRoleRuns(ctx context.Context, arg ListRoleRunsParams) ([]RoleRun, error)
+	ListToolCalls(ctx context.Context, arg ListToolCallsParams) ([]ToolCall, error)
+	LockPendingOutboxEvents(ctx context.Context, arg LockPendingOutboxEventsParams) ([]OutboxEvent, error)
 	LockUserManifestScope(ctx context.Context, arg LockUserManifestScopeParams) error
 	NewManifestID(ctx context.Context) (string, error)
 	UpsertConversation(ctx context.Context, arg UpsertConversationParams) (Conversation, error)
+	UpsertInstructionVersion(ctx context.Context, arg UpsertInstructionVersionParams) (InstructionVersion, error)
 	UpsertUserManifest(ctx context.Context, arg UpsertUserManifestParams) (UserManifest, error)
 }
 

@@ -121,3 +121,69 @@ FROM sonata.role_runs
 WHERE owner_id = sqlc.arg(owner_id)
   AND cognitive_run_id = sqlc.arg(cognitive_run_id)
 ORDER BY created_at, id;
+
+-- name: InsertToolCall :one
+INSERT INTO sonata.tool_calls (
+    owner_id,
+    cognitive_run_id,
+    role_run_id,
+    tool_name,
+    status,
+    request_metadata,
+    result_metadata,
+    created_at
+)
+VALUES (
+    sqlc.arg(owner_id),
+    sqlc.arg(cognitive_run_id),
+    sqlc.arg(role_run_id),
+    sqlc.arg(tool_name),
+    sqlc.arg(status),
+    sqlc.arg(request_metadata)::jsonb,
+    sqlc.arg(result_metadata)::jsonb,
+    sqlc.arg(created_at)
+)
+RETURNING id, owner_id, cognitive_run_id, role_run_id, tool_name, status, request_metadata, result_metadata, created_at, completed_at;
+
+-- name: CompleteToolCall :one
+UPDATE sonata.tool_calls
+SET status = sqlc.arg(status),
+    result_metadata = sqlc.arg(result_metadata)::jsonb,
+    completed_at = sqlc.arg(completed_at)
+WHERE owner_id = sqlc.arg(owner_id)
+  AND cognitive_run_id = sqlc.arg(cognitive_run_id)
+  AND id = sqlc.arg(tool_call_id)
+RETURNING id, owner_id, cognitive_run_id, role_run_id, tool_name, status, request_metadata, result_metadata, created_at, completed_at;
+
+-- name: ListToolCalls :many
+SELECT id, owner_id, cognitive_run_id, role_run_id, tool_name, status, request_metadata, result_metadata, created_at, completed_at
+FROM sonata.tool_calls
+WHERE owner_id = sqlc.arg(owner_id)
+  AND cognitive_run_id = sqlc.arg(cognitive_run_id)
+ORDER BY created_at, id;
+
+-- name: InsertProviderUsage :one
+INSERT INTO sonata.provider_usage (
+    owner_id,
+    cognitive_run_id,
+    role_run_id,
+    provider,
+    model_id,
+    input_tokens,
+    output_tokens,
+    cached_tokens,
+    created_at
+)
+VALUES (
+    sqlc.arg(owner_id),
+    sqlc.arg(cognitive_run_id),
+    sqlc.arg(role_run_id),
+    sqlc.arg(provider),
+    sqlc.arg(model_id),
+    sqlc.arg(input_tokens),
+    sqlc.arg(output_tokens),
+    sqlc.arg(cached_tokens),
+    sqlc.arg(created_at)
+)
+RETURNING id, owner_id, cognitive_run_id, role_run_id, provider, model_id, input_tokens, output_tokens, cached_tokens, created_at;
+

@@ -30,6 +30,14 @@ type Conversation struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+type InstructionVersion struct {
+	InstructionID string    `json:"instruction_id"`
+	Version       int32     `json:"version"`
+	ContentHash   string    `json:"content_hash"`
+	Metadata      []byte    `json:"metadata"`
+	CreatedAt     time.Time `json:"created_at"`
+}
+
 type ManifestVersion struct {
 	ManifestID  string    `json:"manifest_id"`
 	Version     int32     `json:"version"`
@@ -47,6 +55,35 @@ type Message struct {
 	Role           string    `json:"role"`
 	Content        []byte    `json:"content"`
 	CreatedAt      time.Time `json:"created_at"`
+}
+
+type OutboxEvent struct {
+	ID            pgtype.UUID `json:"id"`
+	OwnerID       *string     `json:"owner_id"`
+	AggregateType string      `json:"aggregate_type"`
+	AggregateID   string      `json:"aggregate_id"`
+	EventType     string      `json:"event_type"`
+	Payload       []byte      `json:"payload"`
+	Status        string      `json:"status"`
+	Attempts      int32       `json:"attempts"`
+	AvailableAt   time.Time   `json:"available_at"`
+	LockedAt      *time.Time  `json:"locked_at"`
+	ProcessedAt   *time.Time  `json:"processed_at"`
+	LastErrorCode string      `json:"last_error_code"`
+	CreatedAt     time.Time   `json:"created_at"`
+}
+
+type ProviderUsage struct {
+	ID             pgtype.UUID `json:"id"`
+	OwnerID        string      `json:"owner_id"`
+	CognitiveRunID pgtype.UUID `json:"cognitive_run_id"`
+	RoleRunID      pgtype.UUID `json:"role_run_id"`
+	Provider       string      `json:"provider"`
+	ModelID        string      `json:"model_id"`
+	InputTokens    int64       `json:"input_tokens"`
+	OutputTokens   int64       `json:"output_tokens"`
+	CachedTokens   int64       `json:"cached_tokens"`
+	CreatedAt      time.Time   `json:"created_at"`
 }
 
 type RoleRun struct {
@@ -68,6 +105,19 @@ type RoleRun struct {
 	ErrorCode          string      `json:"error_code"`
 	CreatedAt          time.Time   `json:"created_at"`
 	ManifestSource     string      `json:"manifest_source"`
+}
+
+type ToolCall struct {
+	ID              pgtype.UUID `json:"id"`
+	OwnerID         string      `json:"owner_id"`
+	CognitiveRunID  pgtype.UUID `json:"cognitive_run_id"`
+	RoleRunID       pgtype.UUID `json:"role_run_id"`
+	ToolName        string      `json:"tool_name"`
+	Status          string      `json:"status"`
+	RequestMetadata []byte      `json:"request_metadata"`
+	ResultMetadata  []byte      `json:"result_metadata"`
+	CreatedAt       time.Time   `json:"created_at"`
+	CompletedAt     *time.Time  `json:"completed_at"`
 }
 
 type User struct {
