@@ -145,7 +145,7 @@ strained relationship  -> user_hostility
 - replay identical trajectory — `affective_trajectory_test.go`;
 - deterministic property corpus и fuzz seeds — `affective_trajectory_test.go`.
 
-## 5. Незакрытые trajectories
+## 5. Verification state
 
 ### 5.1. Replay after optimistic lock conflict
 
@@ -166,7 +166,7 @@ load state version N
 
 ### 5.2. Full numeric snapshots
 
-**Статус: implemented, ожидает подтверждения полного CI.**
+**Статус: verified and closed.**
 
 Добавлены два парных versioned fixture для сценариев:
 
@@ -200,7 +200,7 @@ Fixtures фиксируют:
 
 Числа нормализуются до девяти знаков после запятой. Timestamps записываются в UTC RFC3339Nano. Пустые complex-state и evidence slices сохраняются как `[]`, а не `null`, поэтому неожиданное появление runtime state также считается snapshot drift.
 
-Изменение fixture допустимо только при осознанном изменении контракта или version bump профиля. До подтверждения CI этот пункт не закрывается в `CHECKLIST.md`.
+Изменение fixture допустимо только при осознанном изменении контракта или version bump профиля. Full repository test suite и GitHub CI подтверждены на head `a27fe66df7e476b0566afe2501434e4e8fbd0985`; numeric snapshot increment закрыт.
 
 ## 6. Acceptance gate
 
