@@ -40,6 +40,15 @@ jobs:
         run: |
           sqlc generate
           sqlc vet
+          git diff -- internal/database/dbgen || true
+
+      - name: Upload regenerated bindings
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: regenerated-dbgen
+          path: internal/database/dbgen
+          retention-days: 1
 
       - name: Verify generated package compiles
         run: go test ./internal/database/...
