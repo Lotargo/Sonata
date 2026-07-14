@@ -29,9 +29,25 @@ type DeleteUserManifestParams struct {
 }
 
 func (q *Queries) DeleteUserManifest(ctx context.Context, arg DeleteUserManifestParams) (UserManifest, error) {
-	row := q.db.QueryRow(ctx, deleteUserManifest, arg.UpdatedAt, arg.OwnerID, arg.Scope, arg.ScopeID)
+	row := q.db.QueryRow(ctx, deleteUserManifest,
+		arg.UpdatedAt,
+		arg.OwnerID,
+		arg.Scope,
+		arg.ScopeID,
+	)
 	var i UserManifest
-	err := scanUserManifest(row.Scan, &i)
+	err := row.Scan(
+		&i.OwnerID,
+		&i.Scope,
+		&i.ScopeID,
+		&i.ManifestID,
+		&i.Version,
+		&i.Status,
+		&i.Content,
+		&i.ContentHash,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
 	return i, err
 }
 
@@ -52,7 +68,18 @@ type GetUserManifestParams struct {
 func (q *Queries) GetUserManifest(ctx context.Context, arg GetUserManifestParams) (UserManifest, error) {
 	row := q.db.QueryRow(ctx, getUserManifest, arg.OwnerID, arg.Scope, arg.ScopeID)
 	var i UserManifest
-	err := scanUserManifest(row.Scan, &i)
+	err := row.Scan(
+		&i.OwnerID,
+		&i.Scope,
+		&i.ScopeID,
+		&i.ManifestID,
+		&i.Version,
+		&i.Status,
+		&i.Content,
+		&i.ContentHash,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
 	return i, err
 }
 
@@ -74,7 +101,18 @@ type GetUserManifestForUpdateParams struct {
 func (q *Queries) GetUserManifestForUpdate(ctx context.Context, arg GetUserManifestForUpdateParams) (UserManifest, error) {
 	row := q.db.QueryRow(ctx, getUserManifestForUpdate, arg.OwnerID, arg.Scope, arg.ScopeID)
 	var i UserManifest
-	err := scanUserManifest(row.Scan, &i)
+	err := row.Scan(
+		&i.OwnerID,
+		&i.Scope,
+		&i.ScopeID,
+		&i.ManifestID,
+		&i.Version,
+		&i.Status,
+		&i.Content,
+		&i.ContentHash,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
 	return i, err
 }
 
@@ -88,7 +126,15 @@ INSERT INTO sonata.manifest_versions (
     metadata,
     created_at
 )
-VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7)
+VALUES (
+    $1,
+    $2,
+    $3,
+    $4,
+    $5,
+    $6::jsonb,
+    $7
+)
 RETURNING manifest_id, version, owner_id, source, content_hash, metadata, created_at
 `
 
@@ -128,7 +174,11 @@ func (q *Queries) InsertManifestVersion(ctx context.Context, arg InsertManifestV
 const lockUserManifestScope = `-- name: LockUserManifestScope :exec
 SELECT pg_advisory_xact_lock(
     hashtextextended(
-        $1 || E'\x1f' || $2 || E'\x1f' || $3,
+        CAST($1 AS text)
+        || E'\x1f'
+        || CAST($2 AS text)
+        || E'\x1f'
+        || CAST($3 AS text),
         0
     )
 )
@@ -151,9 +201,9 @@ SELECT gen_random_uuid()::text AS manifest_id
 
 func (q *Queries) NewManifestID(ctx context.Context) (string, error) {
 	row := q.db.QueryRow(ctx, newManifestID)
-	var manifestID string
-	err := row.Scan(&manifestID)
-	return manifestID, err
+	var manifest_id string
+	err := row.Scan(&manifest_id)
+	return manifest_id, err
 }
 
 const upsertUserManifest = `-- name: UpsertUserManifest :one
@@ -169,7 +219,18 @@ INSERT INTO sonata.user_manifests (
     created_at,
     updated_at
 )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+VALUES (
+    $1,
+    $2,
+    $3,
+    $4,
+    $5,
+    $6,
+    $7,
+    $8,
+    $9,
+    $10
+)
 ON CONFLICT (owner_id, scope, scope_id) DO UPDATE
 SET manifest_id = EXCLUDED.manifest_id,
     version = EXCLUDED.version,
@@ -207,21 +268,17 @@ func (q *Queries) UpsertUserManifest(ctx context.Context, arg UpsertUserManifest
 		arg.UpdatedAt,
 	)
 	var i UserManifest
-	err := scanUserManifest(row.Scan, &i)
-	return i, err
-}
-
-func scanUserManifest(scan scanFunction, item *UserManifest) error {
-	return scan(
-		&item.OwnerID,
-		&item.Scope,
-		&item.ScopeID,
-		&item.ManifestID,
-		&item.Version,
-		&item.Status,
-		&item.Content,
-		&item.ContentHash,
-		&item.CreatedAt,
-		&item.UpdatedAt,
+	err := row.Scan(
+		&i.OwnerID,
+		&i.Scope,
+		&i.ScopeID,
+		&i.ManifestID,
+		&i.Version,
+		&i.Status,
+		&i.Content,
+		&i.ContentHash,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
+	return i, err
 }
