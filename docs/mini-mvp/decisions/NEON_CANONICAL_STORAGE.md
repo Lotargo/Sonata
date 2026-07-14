@@ -1,7 +1,7 @@
 # Neon PostgreSQL canonical storage
 
-> Статус: second vertical slice implemented, ожидает подтверждения полного CI  
-> Candidate implementation head: `fddee8591441244f4605640053cb44a68fa7e4fb`  
+> Статус: third vertical slice implemented, ожидает подтверждения полного CI  
+> Candidate implementation head: `94d1363259da2b5bcc211f1dd6bcbe43f236893b`  
 > Database schema: `sonata`  
 > Migration format: goose SQL  
 > Query generation: sqlc `v1.31.1`, pgx/v5
@@ -75,6 +75,8 @@ internal/database/migrations/
 4. `00004_run_completion_invariants.sql` запрещает дубли canonical role внутри одного cognitive run.
 
 GitHub Actions `Go CI` поднимает PostgreSQL 16, применяет migrations через pinned `goose`, затем запускает unit, race и database integration tests.
+
+Render Blueprint на build-этапе устанавливает отдельный pinned `goose v3.27.2` в `./bin`. `preDeployCommand` применяет migrations через `DATABASE_DIRECT_URL` до запуска новой версии `sonata-api`; pooled `DATABASE_URL` migration process не использует. Ненулевой exit status блокирует новый deployment до старта application process.
 
 ## 5. Canonical entities
 
@@ -261,7 +263,7 @@ ensure canonical user
 
 GitHub connector в текущей сессии возвращает пустой commit-status result и показывает только pull-request-triggered workflow runs. Репозиторий работает через push-to-main workflows, поэтому фактический conclusion текущего push run через доступный API не подтверждён.
 
-По этой причине checklist stage 08 остаётся открытым, даже несмотря на реализованные code paths и tests.
+По этой причине checklist stage 08 и deployment checkbox остаются открытыми, несмотря на реализованные code paths и tests.
 
 ## 13. Следующий increment
 
@@ -269,7 +271,6 @@ Stage 08 ещё требует:
 
 - repositories для tool calls, provider usage и outbox;
 - persistence protected artifact metadata;
-- запуск migrations через deployment/pre-deploy command;
 - wiring runtime API к `pgxpool`, Postgres affective store и repositories;
 - проверку на реальной Neon branch перед staging;
 - подтверждённый зелёный полный CI для implementation head.
