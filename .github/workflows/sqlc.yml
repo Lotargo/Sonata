@@ -24,13 +24,6 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
 
-      - name: Upload cognition contracts
-        uses: actions/upload-artifact@v7
-        with:
-          name: cognition-contracts
-          path: internal/cognition
-          retention-days: 1
-
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
@@ -47,29 +40,10 @@ jobs:
         run: |
           sqlc generate
           sqlc vet
-          git diff -- internal/database/dbgen || true
-
-      - name: Upload regenerated bindings
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: regenerated-dbgen
-          path: internal/database/dbgen
-          retention-days: 1
+          git diff --exit-code -- internal/database/dbgen
 
       - name: Verify generated package compiles
-        id: compile
-        run: |
-          set -o pipefail
-          go test ./internal/database/... 2>&1 | tee sqlc-compile.log
-
-      - name: Upload SQLC compile diagnostics
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: sqlc-compile-log
-          path: sqlc-compile.log
-          retention-days: 1
+        run: go test ./internal/database/...
 
       - name: Verify generated formatting
         run: |
