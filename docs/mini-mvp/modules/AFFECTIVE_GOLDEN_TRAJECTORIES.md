@@ -101,6 +101,37 @@ baseline
 - opposition/inhibition не сводит mixed state к принудительному winner-takes-all;
 - результат остаётся bounded и валидным.
 
+### 3.5. Same stimulus under supported and strained relationship
+
+Файлы:
+
+- `internal/emotion/affective_relationship_response_test.go`;
+- `internal/emotion/affective_relationship_trajectory_test.go`.
+
+Правило: `relationship-response-v1` для профиля `sonata-affective-v1.0.0`.
+
+Последовательности:
+
+```text
+supported relationship -> user_warmth
+strained relationship  -> user_warmth
+
+supported relationship -> user_hostility
+strained relationship  -> user_hostility
+```
+
+Проверяется:
+
+- одинаковый `user_warmth` создаёт больший joy и trust delta при высоком support;
+- одинаковый `user_hostility` создаёт меньший anger и disgust delta при высоком support и низком strain;
+- high support смягчает отрицательный trust delta;
+- sign-aware rule зеркалит отрицательные effects относительно neutral modifier `1.0`;
+- relationship effects текущего stimulus не меняют его собственный emotional response;
+- повтор transition даёт идентичные state и `TransitionLog`;
+- `TransitionLog.RelationshipRule` фиксирует применённый rule ID.
+
+**Verification status:** isolated Go harness для pure relationship rule и exact unit tests проходит. Full repository test suite и GitHub CI для текущего head пока не подтверждены, поэтому checklist остаётся открытым.
+
 ## 4. Уже покрытые соседними tests сценарии
 
 Следующие accepted scenarios проверяются существующими файлами и не должны дублироваться отдельной копией без причины:
@@ -116,21 +147,7 @@ baseline
 
 ## 5. Незакрытые trajectories
 
-### 5.1. Same stimulus from trusted and untrusted user
-
-**Статус: ready for implementation.**
-
-Bounded и versioned правило зафиксировано в [`RELATIONSHIP_RESPONSE.md`](./RELATIONSHIP_RESPONSE.md):
-
-- rule ID `relationship-response-v1`;
-- profile `sonata-affective-v1.0.0`;
-- relationship snapshot читается до применения relationship effects текущего stimulus;
-- per-emotion modifier ограничен диапазоном `[0.50, 1.50]`;
-- изменение формулы или коэффициентов требует нового rule ID и profile version bump.
-
-Следующий implementation increment должен доказать, что одинаковый stimulus создаёт разный последующий emotional response именно из-за различий relationship state, а не только потому, что два результата содержат разные relationship values.
-
-### 5.2. Replay after optimistic lock conflict
+### 5.1. Replay after optimistic lock conflict
 
 **Статус: blocked by stage 08 storage.**
 
@@ -147,7 +164,7 @@ load state version N
 
 Он добавляется вместе с Neon repository и optimistic lock integration tests.
 
-### 5.3. Full numeric snapshots
+### 5.2. Full numeric snapshots
 
 **Статус: pending verified test execution.**
 
@@ -160,7 +177,7 @@ load state version N
 - drive satisfaction and urgency;
 - active complex states;
 - evidence accumulators;
-- transition metadata.
+- transition metadata, включая `RelationshipRule`.
 
 Snapshot должен использовать явную float tolerance или стабильное decimal normalization. Сырые значения Go `%#v` не являются переносимым golden format.
 
