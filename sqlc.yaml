@@ -17,6 +17,25 @@ sql:
         emit_pointers_for_null_types: true
         query_parameter_limit: 0
         omit_unused_structs: true
+        rename:
+          sonata_cognitive_run: CognitiveRun
+          sonata_conversation: Conversation
+          sonata_manifest_version: ManifestVersion
+          sonata_message: Message
+          sonata_role_run: RoleRun
+          sonata_user: User
+          sonata_user_manifest: UserManifest
+        overrides:
+          - db_type: timestamptz
+            go_type:
+              import: time
+              type: Time
+          - db_type: timestamptz
+            nullable: true
+            go_type:
+              import: time
+              type: Time
+              pointer: true
         initialisms:
           - id
           - api

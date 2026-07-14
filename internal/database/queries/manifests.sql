@@ -1,7 +1,11 @@
 -- name: LockUserManifestScope :exec
 SELECT pg_advisory_xact_lock(
     hashtextextended(
-        sqlc.arg(owner_id) || E'\x1f' || sqlc.arg(scope) || E'\x1f' || sqlc.arg(scope_id),
+        CAST(sqlc.arg(owner_id) AS text)
+        || E'\x1f'
+        || CAST(sqlc.arg(scope) AS text)
+        || E'\x1f'
+        || CAST(sqlc.arg(scope_id) AS text),
         0
     )
 );

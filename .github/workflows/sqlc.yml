@@ -40,6 +40,7 @@ jobs:
         run: |
           sqlc generate
           sqlc vet
+          git diff --exit-code -- internal/database/dbgen
 
       - name: Verify generated package compiles
         run: go test ./internal/database/...

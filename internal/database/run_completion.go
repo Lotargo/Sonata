@@ -143,7 +143,7 @@ func (repository *RunRepository) CompleteCognitiveRun(
 
 	completed, err := repository.queries.CompleteCognitiveRun(ctx, dbgen.CompleteCognitiveRunParams{
 		Status:         string(input.Status),
-		CompletedAt:    completedAt,
+		CompletedAt:    &completedAt,
 		Metadata:       metadata,
 		OwnerID:        ownerID,
 		CognitiveRunID: input.CognitiveRunID,
@@ -164,11 +164,11 @@ func validateRoleCompletionMetadata(metadata cognition.RoleMetadata) (cognition.
 	}
 	status := ""
 	switch metadata.Status {
-	case cognition.RoleSucceeded:
+	case cognition.RoleStatusSucceeded:
 		status = "OK"
-	case cognition.RoleDegraded:
+	case cognition.RoleStatusDegraded:
 		status = "DEGRADED"
-	case cognition.RoleFailed:
+	case cognition.RoleStatusFailed:
 		status = "FAILED"
 	default:
 		return cognition.RoleSpec{}, "", fmt.Errorf("role %s status %q is invalid", metadata.Role, metadata.Status)

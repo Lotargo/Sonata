@@ -39,7 +39,14 @@ INSERT INTO sonata.messages (
     content,
     created_at
 )
-VALUES ($1, $2, $3, $4, $5::jsonb, $6)
+VALUES (
+    $1,
+    $2,
+    $3,
+    $4,
+    $5::jsonb,
+    $6
+)
 RETURNING owner_id, conversation_id, id, role, content, created_at
 `
 
@@ -123,7 +130,13 @@ INSERT INTO sonata.conversations (
     created_at,
     updated_at
 )
-VALUES ($1, $2, $3, $4, $5)
+VALUES (
+    $1,
+    $2,
+    $3,
+    $4,
+    $5
+)
 ON CONFLICT (owner_id, id) DO UPDATE
 SET title = EXCLUDED.title,
     updated_at = GREATEST(sonata.conversations.updated_at, EXCLUDED.updated_at)
@@ -147,6 +160,12 @@ func (q *Queries) UpsertConversation(ctx context.Context, arg UpsertConversation
 		arg.UpdatedAt,
 	)
 	var i Conversation
-	err := row.Scan(&i.OwnerID, &i.ID, &i.Title, &i.CreatedAt, &i.UpdatedAt)
+	err := row.Scan(
+		&i.OwnerID,
+		&i.ID,
+		&i.Title,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
 	return i, err
 }
