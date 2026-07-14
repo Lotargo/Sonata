@@ -21,6 +21,7 @@ env:
   OPENCODE_ZEN_API_KEY: ci-opencode-key-7d9e
   DATABASE_URL: postgres://sonata:sonata@localhost:5432/sonata?sslmode=disable
   DATABASE_DIRECT_URL: postgres://sonata:sonata@localhost:5432/sonata?sslmode=disable
+  SONATA_TEST_DATABASE_URL: postgres://sonata:sonata@localhost:5432/sonata?sslmode=disable
   LANGSEARCH_API_KEY: ci-langsearch-key-51a8
   QDRANT_URL: https://qdrant.example.invalid
   QDRANT_API_KEY: ci-qdrant-key-932f
@@ -32,6 +33,21 @@ jobs:
     name: Tests and static analysis
     runs-on: ubuntu-latest
     timeout-minutes: 25
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: sonata
+          POSTGRES_PASSWORD: sonata
+          POSTGRES_DB: sonata
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U sonata -d sonata"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
 
     steps:
       - name: Check out repository
@@ -59,7 +75,15 @@ jobs:
             exit 1
           fi
 
-      - name: Run unit tests
+      - name: Apply canonical database migrations
+        env:
+          GOFLAGS: ""
+        run: |
+          go install github.com/pressly/goose/v3/cmd/goose@v3.27.2
+          goose -dir internal/database/migrations postgres "$DATABASE_DIRECT_URL" up
+          goose -dir internal/database/migrations postgres "$DATABASE_DIRECT_URL" status
+
+      - name: Run unit and database integration tests
         id: unit-tests
         run: |
           set -o pipefail
