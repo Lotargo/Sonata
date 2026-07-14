@@ -34,7 +34,7 @@ ALTER TABLE sonata.memory_items
     ADD CONSTRAINT memory_items_owner_conversation_fkey
         FOREIGN KEY (owner_id, conversation_id)
         REFERENCES sonata.conversations(owner_id, id)
-        ON DELETE CASCADE;
+        ON DELETE SET NULL (conversation_id);
 
 -- +goose Down
 
@@ -43,7 +43,7 @@ ALTER TABLE sonata.memory_items
     ADD CONSTRAINT memory_items_owner_id_conversation_id_fkey
         FOREIGN KEY (owner_id, conversation_id)
         REFERENCES sonata.conversations(owner_id, id)
-        ON DELETE SET NULL;
+        ON DELETE SET NULL (conversation_id);
 
 ALTER TABLE sonata.provider_usage
     DROP CONSTRAINT provider_usage_owner_run_role_fkey,
