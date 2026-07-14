@@ -26,7 +26,12 @@ services:
     plan: starter
     branch: main
     autoDeployTrigger: checksPass
-    buildCommand: go build -trimpath -ldflags="-s -w" -o ./bin/sonata ./cmd/sonata
+    buildCommand: >-
+      mkdir -p ./bin &&
+      go build -trimpath -ldflags="-s -w" -o ./bin/sonata ./cmd/sonata &&
+      GOBIN="$PWD/bin" go install github.com/pressly/goose/v3/cmd/goose@v3.27.2
+    preDeployCommand: >-
+      ./bin/goose -dir internal/database/migrations postgres "$DATABASE_DIRECT_URL" up
     startCommand: ./bin/sonata api --config-root ./config --profile production
     healthCheckPath: /internal/health/ready
     maxShutdownDelaySeconds: 30
