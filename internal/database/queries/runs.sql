@@ -97,6 +97,16 @@ WHERE run.owner_id = sqlc.arg(owner_id)
         AND role.cognitive_run_id = run.id
         AND role.status = 'RUNNING'
   )
+  AND (
+      sqlc.arg(status) <> 'OK'
+      OR NOT EXISTS (
+          SELECT 1
+          FROM sonata.role_runs AS role
+          WHERE role.owner_id = run.owner_id
+            AND role.cognitive_run_id = run.id
+            AND role.status <> 'OK'
+      )
+  )
 RETURNING run.id, run.owner_id, run.conversation_id, run.request_message_id, run.route, run.status, run.started_at, run.completed_at, run.metadata;
 
 -- name: GetCognitiveRun :one
