@@ -232,32 +232,36 @@
 
 ## 08. Neon PostgreSQL и canonical storage
 
-- [ ] Создана структура migrations.
-- [ ] Подключены `pgx/v5` и `pgxpool`.
-- [ ] Подключён `sqlc`.
-- [ ] Подключён `goose`.
-- [ ] Разделены pooled runtime URL и direct migration URL.
-- [ ] Созданы таблицы:
-  - [ ] users;
-  - [ ] conversations;
-  - [ ] messages;
-  - [ ] cognitive_runs;
-  - [ ] role_runs;
-  - [ ] tool_calls;
-  - [ ] instruction_versions;
-  - [ ] manifest_versions;
-  - [ ] user_manifests;
-  - [ ] affective_states;
-  - [ ] affective_events;
-  - [ ] memory_items;
-  - [ ] documents;
-  - [ ] provider_usage;
-  - [ ] outbox_events.
-- [ ] Все user-owned сущности имеют строгий owner boundary.
-- [ ] Реализованы transactions для cognitive run и связанных role runs.
-- [ ] Реализован optimistic/version lock affective state.
-- [ ] OpenWebUI и Sonata используют отдельные databases или schemas.
-- [ ] Добавлены integration tests PostgreSQL.
+- [x] Создана структура migrations.
+- [x] Подключены `pgx/v5` и `pgxpool`.
+- [x] Подключён `sqlc`.
+- [x] Подключён `goose`.
+- [x] Разделены pooled runtime URL и direct migration URL.
+- [x] Созданы таблицы:
+  - [x] users;
+  - [x] conversations;
+  - [x] messages;
+  - [x] cognitive_runs;
+  - [x] role_runs;
+  - [x] tool_calls;
+  - [x] instruction_versions;
+  - [x] manifest_versions;
+  - [x] user_manifests;
+  - [x] affective_states;
+  - [x] affective_events;
+  - [x] memory_items;
+  - [x] documents;
+  - [x] provider_usage;
+  - [x] outbox_events.
+- [x] Все user-owned сущности имеют строгий owner boundary на уровне schema и реализованных repositories.
+- [x] Реализованы transactions для cognitive run и связанных role runs.
+- [x] Реализован optimistic/version lock affective state.
+- [ ] OpenWebUI и Sonata используют отдельные databases или schemas в развёрнутой среде.
+- [x] Добавлены integration tests PostgreSQL.
+- [x] Детерминированная генерация `sqlc`, полный Go CI и secret scan подтверждены на PR #6 code head `33371442be2d2d352697d3da87f8786715eb9db0`, merged as `601f9795a65fae48426621aba12acb66dfa8dae9`.
+- [ ] Runtime API использует `pgxpool` и canonical repositories вместо runtime-only storage на всех обязательных путях.
+- [ ] Реализованы repositories для `tool_calls`, `provider_usage`, `outbox_events` и metadata protected artifacts.
+- [ ] Storage slice проверен на реальной Neon branch.
 
 **Критерий этапа:** Neon является единственным canonical source of truth, cross-user чтение невозможно на repository/service boundary.
 
@@ -374,7 +378,7 @@
 - [ ] Настроен OpenCode Zen master key.
 - [ ] Настроен LangSearch key.
 - [ ] Настроен Grafana Cloud OTLP.
-- [ ] Выполняются migrations перед запуском новой версии.
+- [x] Выполняются migrations перед запуском новой версии.
 - [ ] Readiness учитывает database и обязательные providers.
 - [ ] Проверен graceful deploy без потери активных requests.
 - [ ] Документирован rollback.

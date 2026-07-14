@@ -1,7 +1,7 @@
 # Neon PostgreSQL canonical storage
 
-> Статус: third vertical slice implemented, ожидает подтверждения полного CI  
-> Candidate implementation head: `94d1363259da2b5bcc211f1dd6bcbe43f236893b`  
+> Статус: third vertical slice implemented and verified by full CI; stage remains open for runtime wiring  
+> Verified PR #6 code head: `33371442be2d2d352697d3da87f8786715eb9db0`; merged as `601f9795a65fae48426621aba12acb66dfa8dae9`  
 > Database schema: `sonata`  
 > Migration format: goose SQL  
 > Query generation: sqlc `v1.31.1`, pgx/v5
@@ -261,18 +261,23 @@ ensure canonical user
 
 ## 12. CI status
 
-GitHub connector в текущей сессии возвращает пустой commit-status result и показывает только pull-request-triggered workflow runs. Репозиторий работает через push-to-main workflows, поэтому фактический conclusion текущего push run через доступный API не подтверждён.
+На PR #6 code head `33371442be2d2d352697d3da87f8786715eb9db0` подтверждены:
 
-По этой причине checklist stage 08 и deployment checkbox остаются открытыми, несмотря на реализованные code paths и tests.
+- `SQLC CI` run `29310652075`: `success`;
+- `Go CI` run `29310652083`: `success`;
+- `Secret scan`: `success`.
+
+Исправление слито в `main` merge commit `601f9795a65fae48426621aba12acb66dfa8dae9`.
+
+Полный Go CI выполнил `go mod tidy` с чистым diff, formatting check, canonical migrations на PostgreSQL 16, unit и database integration tests, coverage threshold, race detector, `go vet`, `staticcheck`, `govulncheck`, validation всех configuration profiles и проверку redacted output.
+
+SQLC CI повторно сгенерировал bindings через pinned `sqlc v1.31.1`, выполнил `sqlc vet`, подтвердил отсутствие generated diff и успешную сборку `internal/database`.
 
 ## 13. Следующий increment
 
 Stage 08 ещё требует:
 
-- repositories для tool calls, provider usage и outbox;
-- persistence protected artifact metadata;
-- wiring runtime API к `pgxpool`, Postgres affective store и repositories;
-- проверку на реальной Neon branch перед staging;
-- подтверждённый зелёный полный CI для implementation head.
-
-Checkboxes stage 08 отмечаются только после доступного и однозначного результата соответствующего workflow run.
+- repositories для `tool_calls`, `provider_usage`, `outbox_events` и metadata protected artifacts;
+- wiring runtime API к `pgxpool`, Postgres affective store и canonical repositories на всех обязательных путях;
+- отдельной database или schema и credentials для OpenWebUI в развёрнутой среде;
+- проверки storage slice на реальной Neon branch перед staging.
