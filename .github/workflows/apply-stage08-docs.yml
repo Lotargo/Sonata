@@ -1,0 +1,146 @@
+name: Apply verified stage 08 documentation
+
+on:
+  push:
+    branches:
+      - docs/stage08-ci-verification
+
+permissions:
+  contents: write
+
+jobs:
+  update-docs:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v6
+
+      - name: Apply canonical documentation update
+        run: |
+          python <<'PY'
+          from pathlib import Path
+          import re
+
+          checklist_path = Path("docs/mini-mvp/CHECKLIST.md")
+          checklist = checklist_path.read_text(encoding="utf-8")
+
+          stage_08 = """## 08. Neon PostgreSQL и canonical storage
+
+- [x] Создана структура migrations.
+- [x] Подключены `pgx/v5` и `pgxpool`.
+- [x] Подключён `sqlc`.
+- [x] Подключён `goose`.
+- [x] Разделены pooled runtime URL и direct migration URL.
+- [x] Созданы таблицы:
+  - [x] users;
+  - [x] conversations;
+  - [x] messages;
+  - [x] cognitive_runs;
+  - [x] role_runs;
+  - [x] tool_calls;
+  - [x] instruction_versions;
+  - [x] manifest_versions;
+  - [x] user_manifests;
+  - [x] affective_states;
+  - [x] affective_events;
+  - [x] memory_items;
+  - [x] documents;
+  - [x] provider_usage;
+  - [x] outbox_events.
+- [x] Все user-owned сущности имеют строгий owner boundary на уровне schema и реализованных repositories.
+- [x] Реализованы transactions для cognitive run и связанных role runs.
+- [x] Реализован optimistic/version lock affective state.
+- [ ] OpenWebUI и Sonata используют отдельные databases или schemas в развёрнутой среде.
+- [x] Добавлены integration tests PostgreSQL.
+- [x] Детерминированная генерация `sqlc`, полный Go CI и secret scan подтверждены на PR #6 code head `33371442be2d2d352697d3da87f8786715eb9db0`, merged as `601f9795a65fae48426621aba12acb66dfa8dae9`.
+- [ ] Runtime API использует `pgxpool` и canonical repositories вместо runtime-only storage на всех обязательных путях.
+- [ ] Реализованы repositories для `tool_calls`, `provider_usage`, `outbox_events` и metadata protected artifacts.
+- [ ] Storage slice проверен на реальной Neon branch.
+
+**Критерий этапа:** Neon является единственным canonical source of truth, cross-user чтение невозможно на repository/service boundary.
+"""
+
+          checklist, count = re.subn(
+              r"## 08\. Neon PostgreSQL и canonical storage\n.*?(?=\n## 09\. Background jobs)",
+              stage_08.rstrip(),
+              checklist,
+              flags=re.S,
+          )
+          if count != 1:
+              raise SystemExit(f"stage 08 replacement count = {count}, want 1")
+
+          old_migration_item = "- [ ] Выполняются migrations перед запуском новой версии."
+          new_migration_item = "- [x] Выполняются migrations перед запуском новой версии."
+          if checklist.count(old_migration_item) != 1:
+              raise SystemExit("Render migration checklist item was not found exactly once")
+          checklist = checklist.replace(old_migration_item, new_migration_item)
+          checklist_path.write_text(checklist, encoding="utf-8")
+
+          decision_path = Path("docs/mini-mvp/decisions/NEON_CANONICAL_STORAGE.md")
+          decision = decision_path.read_text(encoding="utf-8")
+
+          decision, count = re.subn(
+              r"> Статус:.*?\n> Candidate implementation head:.*?\n",
+              "> Статус: third vertical slice implemented and verified by full CI; stage remains open for runtime wiring  \n"
+              "> Verified PR #6 code head: `33371442be2d2d352697d3da87f8786715eb9db0`; merged as `601f9795a65fae48426621aba12acb66dfa8dae9`  \n",
+              decision,
+              count=1,
+          )
+          if count != 1:
+              raise SystemExit(f"decision header replacement count = {count}, want 1")
+
+          ci_section = """## 12. CI status
+
+На PR #6 code head `33371442be2d2d352697d3da87f8786715eb9db0` подтверждены:
+
+- `SQLC CI` run `29310652075`: `success`;
+- `Go CI` run `29310652083`: `success`;
+- `Secret scan`: `success`.
+
+Исправление слито в `main` merge commit `601f9795a65fae48426621aba12acb66dfa8dae9`.
+
+Полный Go CI выполнил `go mod tidy` с чистым diff, formatting check, canonical migrations на PostgreSQL 16, unit и database integration tests, coverage threshold, race detector, `go vet`, `staticcheck`, `govulncheck`, validation всех configuration profiles и проверку redacted output.
+
+SQLC CI повторно сгенерировал bindings через pinned `sqlc v1.31.1`, выполнил `sqlc vet`, подтвердил отсутствие generated diff и успешную сборку `internal/database`.
+"""
+          decision, count = re.subn(
+              r"## 12\. CI status\n.*?(?=\n## 13\. Следующий increment)",
+              ci_section.rstrip(),
+              decision,
+              flags=re.S,
+          )
+          if count != 1:
+              raise SystemExit(f"CI section replacement count = {count}, want 1")
+
+          next_section = """## 13. Следующий increment
+
+Stage 08 ещё требует:
+
+- repositories для `tool_calls`, `provider_usage`, `outbox_events` и metadata protected artifacts;
+- wiring runtime API к `pgxpool`, Postgres affective store и canonical repositories на всех обязательных путях;
+- отдельной database или schema и credentials для OpenWebUI в развёрнутой среде;
+- проверки storage slice на реальной Neon branch перед staging.
+"""
+          decision, count = re.subn(
+              r"## 13\. Следующий increment\n.*\Z",
+              next_section,
+              decision,
+              flags=re.S,
+          )
+          if count != 1:
+              raise SystemExit(f"next increment replacement count = {count}, want 1")
+          decision_path.write_text(decision, encoding="utf-8")
+          PY
+
+      - name: Remove one-time workflow and commit
+        run: |
+          rm .github/workflows/apply-stage08-docs.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git diff --cached --check
+          git commit -m "docs: record verified stage 08 storage slice"
+          git push
