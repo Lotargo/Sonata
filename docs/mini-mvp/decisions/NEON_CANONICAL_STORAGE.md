@@ -1,7 +1,7 @@
 # Neon PostgreSQL canonical storage
 
 > Статус: second vertical slice implemented, ожидает подтверждения полного CI  
-> Candidate implementation head: `70df16d130ffcd8f50ed278458a37b0fa734a823`  
+> Candidate implementation head: `fddee8591441244f4605640053cb44a68fa7e4fb`  
 > Database schema: `sonata`  
 > Migration format: goose SQL  
 > Query generation: sqlc `v1.31.1`, pgx/v5
@@ -72,6 +72,7 @@ internal/database/migrations/
 1. `00001_canonical_schema.sql` создаёт extension, schema, таблицы, indexes и базовые constraints.
 2. `00002_owner_invariants.sql` усиливает составные owner boundaries для manifests, role runs, tool calls, provider usage и memory items.
 3. `00003_role_manifest_source.sql` сохраняет полный `ManifestRef.Source` каждого role run.
+4. `00004_run_completion_invariants.sql` запрещает дубли canonical role внутри одного cognitive run.
 
 GitHub Actions `Go CI` поднимает PostgreSQL 16, применяет migrations через pinned `goose`, затем запускает unit, race и database integration tests.
 
@@ -175,7 +176,28 @@ ensure user
 
 Integration test намеренно создаёт duplicate message conflict после conversation upsert и подтверждает, что conversation и cognitive run полностью откатываются.
 
-## 9. Versioned user manifests
+## 9. Terminal run policy
+
+`RunRepository.CompleteRoleRun` переводит role из `RUNNING` только если совпадают:
+
+- owner ID;
+- cognitive run ID;
+- role run ID;
+- phase и perspective canonical роли;
+- instruction ID, version и hash;
+- manifest ID, version, hash и source.
+
+Публичная ошибка не различает отсутствующий row и identity mismatch.
+
+`RunRepository.CompleteCognitiveRun` разрешает terminal status только когда:
+
+- run ещё находится в `RUNNING`;
+- не осталось role runs со статусом `RUNNING`;
+- при status `OK` все связанные role runs также имеют `OK`.
+
+Повторное завершение role или run отклоняется. Integration tests проверяют раннее завершение, manifest mismatch и повторный terminal update.
+
+## 10. Versioned user manifests
 
 `ManifestRepository` использует тот же normalizer, что runtime resolver:
 
@@ -214,7 +236,7 @@ Integration tests проверяют:
 - owner isolation;
 - восемь конкурентных updates одного chat scope получают уникальные последовательные versions без orphaned current row.
 
-## 10. Affective persistence
+## 11. Affective persistence
 
 `PostgresAffectiveStateStore` реализует `emotion.AffectiveStateStore`.
 
@@ -235,17 +257,16 @@ ensure canonical user
 - timestamps нормализуются до PostgreSQL microsecond precision;
 - raw message text не записывается в affective state/event payload.
 
-## 11. CI status
+## 12. CI status
 
 GitHub connector в текущей сессии возвращает пустой commit-status result и показывает только pull-request-triggered workflow runs. Репозиторий работает через push-to-main workflows, поэтому фактический conclusion текущего push run через доступный API не подтверждён.
 
 По этой причине checklist stage 08 остаётся открытым, даже несмотря на реализованные code paths и tests.
 
-## 12. Следующий increment
+## 13. Следующий increment
 
 Stage 08 ещё требует:
 
-- completion methods и transaction policy для итоговых cognitive/role statuses;
 - repositories для tool calls, provider usage и outbox;
 - persistence protected artifact metadata;
 - запуск migrations через deployment/pre-deploy command;
