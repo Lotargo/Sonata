@@ -26,14 +26,14 @@ func TestRunRepositoryBeginsCanonicalRunAtomically(t *testing.T) {
 	startedAt := time.Date(2026, time.July, 14, 13, 0, 0, 123456000, time.UTC)
 
 	begun, err := repository.BeginCognitiveRun(context.Background(), BeginCognitiveRunInput{
-		OwnerID:          ownerID,
-		ConversationID:   conversationID,
+		OwnerID:           ownerID,
+		ConversationID:    conversationID,
 		ConversationTitle: "Canonical transaction",
-		MessageID:        messageID,
-		MessageContent:   json.RawMessage(`"hello"`),
-		Route:            cognition.RouteDirect,
-		StartedAt:        startedAt,
-		Metadata:         json.RawMessage(`{"request_id":"request-1"}`),
+		MessageID:         messageID,
+		MessageContent:    json.RawMessage(`"hello"`),
+		Route:             cognition.RouteDirect,
+		StartedAt:         startedAt,
+		Metadata:          json.RawMessage(`{"request_id":"request-1"}`),
 		Roles: []RoleRunStart{
 			canonicalRoleStart(cognition.RoleRouter),
 			canonicalRoleStart(cognition.RoleSynthesisFinal),
@@ -54,13 +54,18 @@ func TestRunRepositoryBeginsCanonicalRunAtomically(t *testing.T) {
 	if begun.Roles[0].Phase != string(cognition.PhaseRouter) || begun.Roles[1].Phase != string(cognition.PhaseSynthesisFinal) {
 		t.Fatalf("role phases = %#v", begun.Roles)
 	}
+	for _, role := range begun.Roles {
+		if role.ManifestSource != "system_default" {
+			t.Fatalf("role manifest source = %q, want system_default", role.ManifestSource)
+		}
+	}
 
 	var counts struct {
-		users        int
+		users         int
 		conversations int
-		messages     int
-		runs         int
-		roles        int
+		messages      int
+		runs          int
+		roles         int
 	}
 	if err := pool.QueryRow(context.Background(), `
 		SELECT
@@ -115,14 +120,14 @@ func TestRunRepositoryRollsBackPartialRequestOnMessageConflict(t *testing.T) {
 	}
 
 	_, err = repository.BeginCognitiveRun(context.Background(), BeginCognitiveRunInput{
-		OwnerID:          ownerID,
-		ConversationID:   newConversationID,
+		OwnerID:           ownerID,
+		ConversationID:    newConversationID,
 		ConversationTitle: "Must roll back",
-		MessageID:        messageID,
-		MessageContent:   json.RawMessage(`"duplicate"`),
-		Route:            cognition.RouteDirect,
-		StartedAt:        time.Now().UTC(),
-		Roles:            []RoleRunStart{canonicalRoleStart(cognition.RoleRouter)},
+		MessageID:         messageID,
+		MessageContent:    json.RawMessage(`"duplicate"`),
+		Route:             cognition.RouteDirect,
+		StartedAt:         time.Now().UTC(),
+		Roles:             []RoleRunStart{canonicalRoleStart(cognition.RoleRouter)},
 	})
 	if err == nil {
 		t.Fatal("duplicate message unexpectedly committed")
