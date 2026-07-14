@@ -88,6 +88,7 @@ func (store *PostgresAffectiveStateStore) CompareAndSwap(
 	if next.Version != expectedVersion+1 {
 		return errors.New("affective state version must increment exactly once")
 	}
+	next.LastUpdatedAt = next.LastUpdatedAt.UTC().Truncate(time.Microsecond)
 	if err := next.Validate(); err != nil {
 		return err
 	}
@@ -98,7 +99,7 @@ func (store *PostgresAffectiveStateStore) CompareAndSwap(
 	eventPayload, err := json.Marshal(struct {
 		ProfileVersion string    `json:"profile_version"`
 		UpdatedAt      time.Time `json:"updated_at"`
-	}{ProfileVersion: next.ProfileVersion, UpdatedAt: next.LastUpdatedAt.UTC()})
+	}{ProfileVersion: next.ProfileVersion, UpdatedAt: next.LastUpdatedAt})
 	if err != nil {
 		return fmt.Errorf("encode affective state event: %w", err)
 	}
@@ -125,7 +126,7 @@ func (store *PostgresAffectiveStateStore) CompareAndSwap(
 			)
 			VALUES ($1, $2, $3, $4, $5::jsonb, $6)
 			ON CONFLICT (identity_id, owner_id) DO NOTHING
-		`, key.IdentityID, key.UserID, next.Version, next.ProfileVersion, payload, next.LastUpdatedAt.UTC())
+		`, key.IdentityID, key.UserID, next.Version, next.ProfileVersion, payload, next.LastUpdatedAt)
 		if err != nil {
 			return fmt.Errorf("insert affective state: %w", err)
 		}
@@ -140,7 +141,7 @@ func (store *PostgresAffectiveStateStore) CompareAndSwap(
 			WHERE identity_id = $1
 				AND owner_id = $2
 				AND version = $7
-		`, key.IdentityID, key.UserID, next.Version, next.ProfileVersion, payload, next.LastUpdatedAt.UTC(), expectedVersion)
+		`, key.IdentityID, key.UserID, next.Version, next.ProfileVersion, payload, next.LastUpdatedAt, expectedVersion)
 		if err != nil {
 			return fmt.Errorf("update affective state: %w", err)
 		}
@@ -155,7 +156,7 @@ func (store *PostgresAffectiveStateStore) CompareAndSwap(
 			identity_id, owner_id, state_version, kind, payload, created_at
 		)
 		VALUES ($1, $2, $3, 'state_transition', $4::jsonb, $5)
-	`, key.IdentityID, key.UserID, next.Version, eventPayload, next.LastUpdatedAt.UTC()); err != nil {
+	`, key.IdentityID, key.UserID, next.Version, eventPayload, next.LastUpdatedAt); err != nil {
 		return fmt.Errorf("insert affective state event: %w", err)
 	}
 	if err := tx.Commit(ctx); err != nil {
