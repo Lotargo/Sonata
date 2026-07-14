@@ -50,7 +50,7 @@ func TestRunRepositoryCompletesRolesBeforeCognitiveRun(t *testing.T) {
 		t.Fatalf("early cognitive completion error = %v, want not completable", err)
 	}
 
-	wrongMetadata := completedRoleMetadata(roleStarts[0], cognition.RoleSucceeded)
+	wrongMetadata := completedRoleMetadata(roleStarts[0], cognition.RoleStatusSucceeded)
 	wrongMetadata.Manifest.Hash = "wrong-manifest-hash"
 	_, err = repository.CompleteRoleRun(context.Background(), CompleteRoleRunInput{
 		OwnerID:        ownerID,
@@ -68,7 +68,7 @@ func TestRunRepositoryCompletesRolesBeforeCognitiveRun(t *testing.T) {
 			OwnerID:        ownerID,
 			CognitiveRunID: begun.Run.ID,
 			RoleRunID:      begun.Roles[index].ID,
-			Metadata:       completedRoleMetadata(start, cognition.RoleSucceeded),
+			Metadata:       completedRoleMetadata(start, cognition.RoleStatusSucceeded),
 			Usage:          json.RawMessage(`{"input_tokens":1,"output_tokens":1}`),
 		})
 		if err != nil {
@@ -83,7 +83,7 @@ func TestRunRepositoryCompletesRolesBeforeCognitiveRun(t *testing.T) {
 		OwnerID:        ownerID,
 		CognitiveRunID: begun.Run.ID,
 		RoleRunID:      begun.Roles[0].ID,
-		Metadata:       completedRoleMetadata(roleStarts[0], cognition.RoleSucceeded),
+		Metadata:       completedRoleMetadata(roleStarts[0], cognition.RoleStatusSucceeded),
 	})
 	if !errors.Is(err, ErrRoleRunNotCompletable) {
 		t.Fatalf("duplicate role completion error = %v, want not completable", err)
