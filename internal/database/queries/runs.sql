@@ -58,7 +58,7 @@ VALUES (
     sqlc.arg(error_code),
     sqlc.arg(created_at)
 )
-RETURNING id, owner_id, cognitive_run_id, phase, perspective, status, model_id, instruction_id, instruction_version, instruction_hash, manifest_id, manifest_version, manifest_hash, manifest_source, latency_ms, usage, error_code, created_at;
+RETURNING id, owner_id, cognitive_run_id, phase, perspective, status, model_id, instruction_id, instruction_version, instruction_hash, manifest_id, manifest_version, manifest_hash, latency_ms, usage, error_code, created_at, manifest_source;
 
 -- name: CompleteRoleRun :one
 UPDATE sonata.role_runs
@@ -80,7 +80,7 @@ WHERE owner_id = sqlc.arg(owner_id)
   AND manifest_version = sqlc.arg(expected_manifest_version)
   AND manifest_hash = sqlc.arg(expected_manifest_hash)
   AND manifest_source = sqlc.arg(expected_manifest_source)
-RETURNING id, owner_id, cognitive_run_id, phase, perspective, status, model_id, instruction_id, instruction_version, instruction_hash, manifest_id, manifest_version, manifest_hash, manifest_source, latency_ms, usage, error_code, created_at;
+RETURNING id, owner_id, cognitive_run_id, phase, perspective, status, model_id, instruction_id, instruction_version, instruction_hash, manifest_id, manifest_version, manifest_hash, latency_ms, usage, error_code, created_at, manifest_source;
 
 -- name: CompleteCognitiveRun :one
 UPDATE sonata.cognitive_runs AS run
@@ -116,7 +116,7 @@ WHERE owner_id = sqlc.arg(owner_id)
   AND id = sqlc.arg(cognitive_run_id);
 
 -- name: ListRoleRuns :many
-SELECT id, owner_id, cognitive_run_id, phase, perspective, status, model_id, instruction_id, instruction_version, instruction_hash, manifest_id, manifest_version, manifest_hash, manifest_source, latency_ms, usage, error_code, created_at
+SELECT id, owner_id, cognitive_run_id, phase, perspective, status, model_id, instruction_id, instruction_version, instruction_hash, manifest_id, manifest_version, manifest_hash, latency_ms, usage, error_code, created_at, manifest_source
 FROM sonata.role_runs
 WHERE owner_id = sqlc.arg(owner_id)
   AND cognitive_run_id = sqlc.arg(cognitive_run_id)
