@@ -183,6 +183,8 @@
 
 - [`modules/EMOTION_MODULE.md`](./modules/EMOTION_MODULE.md)
 - [`modules/AFFECTIVE_DYNAMICS.md`](./modules/AFFECTIVE_DYNAMICS.md)
+- [`modules/RELATIONSHIP_RESPONSE.md`](./modules/RELATIONSHIP_RESPONSE.md)
+- [`modules/AFFECTIVE_GOLDEN_TRAJECTORIES.md`](./modules/AFFECTIVE_GOLDEN_TRAJECTORIES.md)
 
 ### 07A. Реализованный v0 core
 
@@ -209,16 +211,17 @@
 - [x] В versioned profile зафиксированы разные excitation, recovery, persistence, ceiling и delta limits каждой эмоции.
 - [x] Реализована versioned deterministic cross-emotion excitation/inhibition matrix со стабильным порядком.
 - [x] Реализованы typed drive definitions, stable IDs, satisfaction maps и emotion effect maps без autonomous actions.
-- [ ] Drive satisfaction и urgency изменяют последующие transitions.
+- [x] Drive satisfaction и urgency изменяют последующие transitions.
 - [x] Реализованы temporal evidence accumulators без raw message text.
 - [x] Реализованы versioned complex-state recipes: entry/exit conditions, duration, hysteresis и typed effects.
 - [x] `AffectiveState`, active complex states и evidence сохраняют profile/definition versions.
 - [x] Strict startup validation отвергает неполные matrices, invalid signals, неустойчивый порядок, дубли IDs и invalid hysteresis.
-- [ ] Active complex states изменяют последующие transitions, а не только report labels.
-- [ ] Depressive state подавляет joy response и меняет sadness/fatigue recovery согласно versioned config.
-- [ ] Реализована чистая deterministic transition function и стабильный iteration order.
-- [ ] Большой elapsed interval обрабатывается bounded способом без неограниченного tick loop.
-- [ ] Добавлены golden trajectory, property, fuzz, replay и long-horizon tests.
+- [x] Active complex states изменяют последующие transitions, а не только report labels.
+- [x] Depressive state подавляет joy response и меняет sadness/fatigue recovery согласно versioned config.
+- [x] Relationship state изменяет последующие direct emotion effects через versioned sign-aware rule `relationship-response-v1` без self-bootstrap текущего stimulus.
+- [x] Реализована чистая deterministic transition function и стабильный iteration order.
+- [x] Большой elapsed interval обрабатывается bounded способом без неограниченного tick loop.
+- [x] Добавлены golden trajectory, property, fuzz, replay и long-horizon tests; полный CI подтверждён на head `7ac6dba38f3652969f6eb946f48689b462c44250`.
 - [ ] Один canonical report version проецируется только в Raw, Critical и Synthesis; Router исключён, Summary не получает отдельный report.
 - [ ] Affective module подключён к HTTP request flow только после выполнения требований v1.
 
