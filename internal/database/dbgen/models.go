@@ -76,14 +76,14 @@ type User struct {
 }
 
 type UserManifest struct {
-	OwnerID    string    `json:"owner_id"`
-	Scope      string    `json:"scope"`
-	ScopeID    string    `json:"scope_id"`
-	ManifestID string    `json:"manifest_id"`
-	Version    int32     `json:"version"`
-	Status     string    `json:"status"`
-	Content    string    `json:"content"`
-	ContentHash string   `json:"content_hash"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
+	OwnerID     string    `json:"owner_id"`
+	Scope       string    `json:"scope"`
+	ScopeID     string    `json:"scope_id"`
+	ManifestID  string    `json:"manifest_id"`
+	Version     int32     `json:"version"`
+	Status      string    `json:"status"`
+	Content     string    `json:"content"`
+	ContentHash string    `json:"content_hash"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
