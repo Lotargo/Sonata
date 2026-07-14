@@ -221,7 +221,8 @@
 - [x] Relationship state изменяет последующие direct emotion effects через versioned sign-aware rule `relationship-response-v1` без self-bootstrap текущего stimulus.
 - [x] Реализована чистая deterministic transition function и стабильный iteration order.
 - [x] Большой elapsed interval обрабатывается bounded способом без неограниченного tick loop.
-- [x] Добавлены golden trajectory, property, fuzz, replay и long-horizon tests; полный CI подтверждён на head `7ac6dba38f3652969f6eb946f48689b462c44250`.
+- [x] Добавлены golden trajectory, property, fuzz, replay и long-horizon tests.
+- [x] Зафиксированы versioned numeric snapshots positive/negative paths для `sonata-affective-v1.0.0`; полный CI подтверждён на head `a27fe66df7e476b0566afe2501434e4e8fbd0985`.
 - [ ] Один canonical report version проецируется только в Raw, Critical и Synthesis; Router исключён, Summary не получает отдельный report.
 - [ ] Affective module подключён к HTTP request flow только после выполнения требований v1.
 
