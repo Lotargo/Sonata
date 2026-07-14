@@ -22,6 +22,9 @@ func (pipeline *FullPipeline) RunAfterRouter(ctx context.Context, input FullPipe
 	if strings.TrimSpace(input.UserInput) == "" {
 		return result, errors.New("full pipeline user input is required")
 	}
+	if err := input.Emotion.Validate(); err != nil {
+		return result, fmt.Errorf("validate emotion report: %w", err)
+	}
 	if err := validateRoleMetadata(input.Router, RoleRouter); err != nil {
 		return result, fmt.Errorf("validate router metadata: %w", err)
 	}
