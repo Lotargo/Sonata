@@ -71,21 +71,21 @@ func relationshipResponse(
 
 func relationshipResponseWeightsV1(emotion Emotion) (relationshipResponseWeights, bool) {
 	switch emotion {
-	case EmotionJoy:
+	case Joy:
 		return relationshipResponseWeights{Support: 0.30, Strain: -0.20}, true
-	case EmotionTrust:
+	case Trust:
 		return relationshipResponseWeights{Support: 0.45, Strain: -0.45}, true
-	case EmotionFear:
+	case Fear:
 		return relationshipResponseWeights{Support: -0.25, Strain: 0.40}, true
-	case EmotionSurprise:
+	case Surprise:
 		return relationshipResponseWeights{Support: 0.05, Strain: 0.00}, true
-	case EmotionSadness:
+	case Sadness:
 		return relationshipResponseWeights{Support: -0.20, Strain: 0.30}, true
-	case EmotionDisgust:
+	case Disgust:
 		return relationshipResponseWeights{Support: -0.15, Strain: 0.35}, true
-	case EmotionAnger:
+	case Anger:
 		return relationshipResponseWeights{Support: -0.20, Strain: 0.45}, true
-	case EmotionAnticipation:
+	case Anticipation:
 		return relationshipResponseWeights{Support: 0.15, Strain: -0.10}, true
 	default:
 		return relationshipResponseWeights{}, false
