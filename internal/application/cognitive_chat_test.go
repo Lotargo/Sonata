@@ -287,8 +287,8 @@ func TestCognitiveChatServiceImplCompleteFull(t *testing.T) {
 	}
 
 	fullEmitted := strings.Join(emitted, "")
-	if fullEmitted != "Hello from full route!" {
-		t.Errorf("emitted = %q, want Hello from full route!", fullEmitted)
+	if !strings.Contains(fullEmitted, "Hello from full route!") {
+		t.Errorf("emitted = %q, want containing Hello from full route!", fullEmitted)
 	}
 
 	// Verify database entries

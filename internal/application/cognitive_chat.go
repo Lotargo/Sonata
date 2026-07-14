@@ -410,6 +410,8 @@ func (s *CognitiveChatServiceImpl) Complete(
 	} else {
 		content = pipelineResult.Full.Final.Content
 		finishReason = "stop"
+		detailsBlock := formatInternalDialogueMarkdown(pipelineResult.Full)
+		content = detailsBlock + "\n\n" + content
 	}
 
 	chunkSize := 16
@@ -741,4 +743,66 @@ func (d *dbToolExecutor) ExecuteTools(ctx context.Context, calls []cognition.Too
 	}
 
 	return results, nil
+}
+
+func formatInternalDialogueMarkdown(result *cognition.FullPipelineResult) string {
+	var sb strings.Builder
+	sb.WriteString("<details>\n<summary>🧠 Sonata Cognitive Processing (Prisms Dialogue)</summary>\n\n")
+
+	prisms := []cognition.Prism{
+		cognition.PrismEfficiency,
+		cognition.PrismCreativity,
+		cognition.PrismPragmatism,
+		cognition.PrismPhilosophy,
+		cognition.PrismEthics,
+	}
+
+	for _, p := range prisms {
+		branch, exists := result.Dialogue.Branches[p]
+		if !exists {
+			if failure, failed := result.Failures[p]; failed {
+				sb.WriteString(fmt.Sprintf("### 🔴 Prism: %s (FAILED)\n", strings.Title(string(p))))
+				sb.WriteString(fmt.Sprintf("* **Error**: %s\n\n", failure.Err.Error()))
+			}
+			continue
+		}
+
+		sb.WriteString(fmt.Sprintf("### 🔍 Prism: %s\n", strings.Title(string(p))))
+		sb.WriteString("#### 📋 Summary:\n")
+		sb.WriteString(fmt.Sprintf("* **Initial Position**: %s\n", branch.Summary.InitialPosition))
+		sb.WriteString(fmt.Sprintf("* **Main Critique**: %s\n", branch.Summary.MainCritique))
+		sb.WriteString(fmt.Sprintf("* **Revised Position**: %s\n", branch.Summary.RevisedPosition))
+		if len(branch.Summary.RejectedAssumptions) > 0 {
+			sb.WriteString(fmt.Sprintf("* **Rejected Assumptions**: %s\n", strings.Join(branch.Summary.RejectedAssumptions, ", ")))
+		}
+		if len(branch.Summary.OpenQuestions) > 0 {
+			sb.WriteString(fmt.Sprintf("* **Open Questions**: %s\n", strings.Join(branch.Summary.OpenQuestions, ", ")))
+		}
+		sb.WriteString(fmt.Sprintf("* **Confidence**: `%.2f`\n\n", branch.Summary.Confidence))
+
+		sb.WriteString("<details>\n<summary>Details (Raw Extract & Critique)</summary>\n\n")
+		sb.WriteString("#### 📝 Raw Extract:\n")
+		sb.WriteString(branch.Raw.Content + "\n\n")
+		sb.WriteString("#### ⚖️ Critique:\n")
+		sb.WriteString(branch.Critical.Content + "\n\n")
+		if len(branch.Critical.WeakAssumptions) > 0 {
+			sb.WriteString(fmt.Sprintf("* **Weak Assumptions**: %s\n", strings.Join(branch.Critical.WeakAssumptions, ", ")))
+		}
+		if len(branch.Critical.UnprovenConclusions) > 0 {
+			sb.WriteString(fmt.Sprintf("* **Unproven Conclusions**: %s\n", strings.Join(branch.Critical.UnprovenConclusions, ", ")))
+		}
+		sb.WriteString("</details>\n\n---\n\n")
+	}
+
+	if len(result.ToolResults) > 0 {
+		sb.WriteString("### 🛠️ Executed Tools\n")
+		for _, tr := range result.ToolResults {
+			sb.WriteString(fmt.Sprintf("* **Tool**: `%s` (ID: `%s`)\n", tr.Name, tr.ToolCallID))
+			sb.WriteString(fmt.Sprintf("  * **Result**: `%s`\n", tr.Content))
+		}
+		sb.WriteString("\n")
+	}
+
+	sb.WriteString("</details>")
+	return sb.String()
 }
