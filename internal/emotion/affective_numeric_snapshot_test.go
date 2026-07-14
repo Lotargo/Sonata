@@ -6,39 +6,56 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"time"
 )
 
 const affectiveNumericSnapshotSchemaV1 = "sonata-affective-numeric-snapshot-v1"
 
 type affectiveNumericSnapshot struct {
-	SchemaVersion  string                    `json:"schema_version"`
-	Scenario       string                    `json:"scenario"`
-	ProfileVersion string                    `json:"profile_version"`
-	State          affectiveNumericState     `json:"state"`
+	SchemaVersion  string                     `json:"schema_version"`
+	Scenario       string                     `json:"scenario"`
+	ProfileVersion string                     `json:"profile_version"`
+	State          affectiveNumericState      `json:"state"`
 	Transition     affectiveNumericTransition `json:"transition"`
 }
 
 type affectiveNumericState struct {
-	Version        int64                       `json:"version"`
-	LastUpdatedAt  string                      `json:"last_updated_at"`
-	Emotions       affectiveNumericEmotions    `json:"emotions"`
-	Physiology     affectiveNumericPhysiology  `json:"physiology"`
-	Relationship   affectiveNumericRelationship `json:"relationship"`
-	Drives         []affectiveNumericDrive     `json:"drives"`
-	ComplexStates  int                         `json:"complex_states"`
-	Evidence       int                         `json:"evidence_accumulators"`
+	Version       int64                        `json:"version"`
+	LastUpdatedAt string                       `json:"last_updated_at"`
+	Emotions      affectiveNumericEmotions     `json:"emotions"`
+	Physiology    affectiveNumericPhysiology   `json:"physiology"`
+	Relationship  affectiveNumericRelationship `json:"relationship"`
+	Drives        []affectiveNumericDrive      `json:"drives"`
+	ComplexStates []affectiveNumericComplex    `json:"complex_states"`
+	Evidence      []affectiveNumericEvidence   `json:"evidence_accumulators"`
 }
 
 type affectiveNumericEmotions struct {
-	Joy, Trust, Fear, Surprise, Sadness, Disgust, Anger, Anticipation float64
+	Joy          float64 `json:"joy"`
+	Trust        float64 `json:"trust"`
+	Fear         float64 `json:"fear"`
+	Surprise     float64 `json:"surprise"`
+	Sadness      float64 `json:"sadness"`
+	Disgust      float64 `json:"disgust"`
+	Anger        float64 `json:"anger"`
+	Anticipation float64 `json:"anticipation"`
 }
 
 type affectiveNumericPhysiology struct {
-	Fatigue, Arousal, Energy, StressLoad, Stability float64
+	Fatigue    float64 `json:"fatigue"`
+	Arousal    float64 `json:"arousal"`
+	Energy     float64 `json:"energy"`
+	StressLoad float64 `json:"stress_load"`
+	Stability  float64 `json:"stability"`
 }
 
 type affectiveNumericRelationship struct {
-	Attachment, Openness, Tension, ConfidenceInUser, PerceivedSafety, UnresolvedHurt float64
+	Attachment       float64 `json:"attachment"`
+	Openness         float64 `json:"openness"`
+	Tension          float64 `json:"tension"`
+	ConfidenceInUser float64 `json:"confidence_in_user"`
+	PerceivedSafety  float64 `json:"perceived_safety"`
+	UnresolvedHurt   float64 `json:"unresolved_hurt"`
 }
 
 type affectiveNumericDrive struct {
@@ -46,6 +63,22 @@ type affectiveNumericDrive struct {
 	Level        float64 `json:"level"`
 	Satisfaction float64 `json:"satisfaction"`
 	Urgency      float64 `json:"urgency"`
+}
+
+type affectiveNumericComplex struct {
+	Kind         string  `json:"kind"`
+	DefinitionID string  `json:"definition_id"`
+	Activation   float64 `json:"activation"`
+	ActiveSince  string  `json:"active_since"`
+}
+
+type affectiveNumericEvidence struct {
+	Kind                   string  `json:"kind"`
+	DefinitionID           string  `json:"definition_id"`
+	PositiveArea           float64 `json:"positive_area"`
+	ViolationArea          float64 `json:"violation_area"`
+	ObservedForNanoseconds int64   `json:"observed_for_nanoseconds"`
+	LastUpdatedAt          string  `json:"last_updated_at"`
 }
 
 type affectiveNumericTransition struct {
@@ -64,8 +97,13 @@ func TestGoldenV1NumericSnapshotWarmthAtBaseline(t *testing.T) {
 	assertGoldenProfileVersion(t, profile)
 
 	next, log, err := Transition(initial, []Stimulus{{
-		Kind: StimulusUserWarmth, Source: "numeric-golden-v1", Intensity: 1, Confidence: 1,
-		Valence: 1, Arousal: 0.25, CreatedAt: start,
+		Kind:       StimulusUserWarmth,
+		Source:     "numeric-golden-v1",
+		Intensity:  1,
+		Confidence: 1,
+		Valence:    1,
+		Arousal:    0.25,
+		CreatedAt:  start,
 	}}, start, profile)
 	if err != nil {
 		t.Fatal(err)
@@ -90,19 +128,89 @@ func TestGoldenV1NumericSnapshotWarmthAtBaseline(t *testing.T) {
 func buildAffectiveNumericSnapshot(scenario string, state AffectiveState, log TransitionLog) affectiveNumericSnapshot {
 	drives := make([]affectiveNumericDrive, 0, len(state.Drives))
 	for _, drive := range state.Drives {
-		drives = append(drives, affectiveNumericDrive{string(drive.Kind), snapshotFloat(drive.Level.Float64()), snapshotFloat(drive.Satisfaction.Float64()), snapshotFloat(drive.Urgency.Float64())})
+		drives = append(drives, affectiveNumericDrive{
+			Kind:         string(drive.Kind),
+			Level:        snapshotFloat(drive.Level.Float64()),
+			Satisfaction: snapshotFloat(drive.Satisfaction.Float64()),
+			Urgency:      snapshotFloat(drive.Urgency.Float64()),
+		})
+	}
+	complexStates := make([]affectiveNumericComplex, 0, len(state.ComplexStates))
+	for _, active := range state.ComplexStates {
+		complexStates = append(complexStates, affectiveNumericComplex{
+			Kind:         string(active.Kind),
+			DefinitionID: active.DefinitionID,
+			Activation:   snapshotFloat(active.Activation.Float64()),
+			ActiveSince:  snapshotTime(active.ActiveSince),
+		})
+	}
+	evidence := make([]affectiveNumericEvidence, 0, len(state.Evidence))
+	for _, accumulator := range state.Evidence {
+		evidence = append(evidence, affectiveNumericEvidence{
+			Kind:                   string(accumulator.Kind),
+			DefinitionID:           accumulator.DefinitionID,
+			PositiveArea:           snapshotFloat(accumulator.Evidence.PositiveArea.Float64()),
+			ViolationArea:          snapshotFloat(accumulator.Evidence.ViolationArea.Float64()),
+			ObservedForNanoseconds: accumulator.Evidence.ObservedFor.Nanoseconds(),
+			LastUpdatedAt:          snapshotTime(accumulator.Evidence.LastUpdatedAt),
+		})
 	}
 	return affectiveNumericSnapshot{
-		SchemaVersion: affectiveNumericSnapshotSchemaV1, Scenario: scenario, ProfileVersion: state.ProfileVersion,
+		SchemaVersion:  affectiveNumericSnapshotSchemaV1,
+		Scenario:       scenario,
+		ProfileVersion: state.ProfileVersion,
 		State: affectiveNumericState{
-			Version: state.Version, LastUpdatedAt: state.LastUpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
-			Emotions: affectiveNumericEmotions{snapshotFloat(state.Emotions.Joy), snapshotFloat(state.Emotions.Trust), snapshotFloat(state.Emotions.Fear), snapshotFloat(state.Emotions.Surprise), snapshotFloat(state.Emotions.Sadness), snapshotFloat(state.Emotions.Disgust), snapshotFloat(state.Emotions.Anger), snapshotFloat(state.Emotions.Anticipation)},
-			Physiology: affectiveNumericPhysiology{snapshotFloat(state.Physiology.Fatigue.Float64()), snapshotFloat(state.Physiology.Arousal.Float64()), snapshotFloat(state.Physiology.Energy.Float64()), snapshotFloat(state.Physiology.StressLoad.Float64()), snapshotFloat(state.Physiology.Stability.Float64())},
-			Relationship: affectiveNumericRelationship{snapshotFloat(state.Relationship.Attachment), snapshotFloat(state.Relationship.Openness), snapshotFloat(state.Relationship.Tension), snapshotFloat(state.Relationship.ConfidenceInUser), snapshotFloat(state.Relationship.PerceivedSafety), snapshotFloat(state.Relationship.UnresolvedHurt)},
-			Drives: drives, ComplexStates: len(state.ComplexStates), Evidence: len(state.Evidence),
+			Version:       state.Version,
+			LastUpdatedAt: snapshotTime(state.LastUpdatedAt),
+			Emotions: affectiveNumericEmotions{
+				Joy:          snapshotFloat(state.Emotions.Joy),
+				Trust:        snapshotFloat(state.Emotions.Trust),
+				Fear:         snapshotFloat(state.Emotions.Fear),
+				Surprise:     snapshotFloat(state.Emotions.Surprise),
+				Sadness:      snapshotFloat(state.Emotions.Sadness),
+				Disgust:      snapshotFloat(state.Emotions.Disgust),
+				Anger:        snapshotFloat(state.Emotions.Anger),
+				Anticipation: snapshotFloat(state.Emotions.Anticipation),
+			},
+			Physiology: affectiveNumericPhysiology{
+				Fatigue:    snapshotFloat(state.Physiology.Fatigue.Float64()),
+				Arousal:    snapshotFloat(state.Physiology.Arousal.Float64()),
+				Energy:     snapshotFloat(state.Physiology.Energy.Float64()),
+				StressLoad: snapshotFloat(state.Physiology.StressLoad.Float64()),
+				Stability:  snapshotFloat(state.Physiology.Stability.Float64()),
+			},
+			Relationship: affectiveNumericRelationship{
+				Attachment:       snapshotFloat(state.Relationship.Attachment),
+				Openness:         snapshotFloat(state.Relationship.Openness),
+				Tension:          snapshotFloat(state.Relationship.Tension),
+				ConfidenceInUser: snapshotFloat(state.Relationship.ConfidenceInUser),
+				PerceivedSafety:  snapshotFloat(state.Relationship.PerceivedSafety),
+				UnresolvedHurt:   snapshotFloat(state.Relationship.UnresolvedHurt),
+			},
+			Drives:        drives,
+			ComplexStates: complexStates,
+			Evidence:      evidence,
 		},
-		Transition: affectiveNumericTransition{log.RelationshipRule, log.FromVersion, log.ToVersion, log.Elapsed.Nanoseconds(), log.RecoverySegments, log.AppliedStimuli, log.IntegrationSubsteps, append([]string(nil), log.StimulusDefinitions...)},
+		Transition: affectiveNumericTransition{
+			RelationshipRule:    log.RelationshipRule,
+			FromVersion:         log.FromVersion,
+			ToVersion:           log.ToVersion,
+			ElapsedNanoseconds:  log.Elapsed.Nanoseconds(),
+			RecoverySegments:    log.RecoverySegments,
+			AppliedStimuli:      log.AppliedStimuli,
+			IntegrationSubsteps: log.IntegrationSubsteps,
+			StimulusDefinitions: append([]string(nil), log.StimulusDefinitions...),
+		},
 	}
 }
 
-func snapshotFloat(value float64) float64 { return math.Round(value*1e9) / 1e9 }
+func snapshotFloat(value float64) float64 {
+	return math.Round(value*1e9) / 1e9
+}
+
+func snapshotTime(value time.Time) string {
+	if value.IsZero() {
+		return ""
+	}
+	return value.UTC().Format(time.RFC3339Nano)
+}
