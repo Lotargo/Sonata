@@ -130,7 +130,7 @@ strained relationship  -> user_hostility
 - повтор transition даёт идентичные state и `TransitionLog`;
 - `TransitionLog.RelationshipRule` фиксирует применённый rule ID.
 
-**Verification status:** isolated Go harness для pure relationship rule и exact unit tests проходит. Full repository test suite и GitHub CI для текущего head пока не подтверждены, поэтому checklist остаётся открытым.
+**Verification status:** full repository test suite и GitHub CI проходят на head `7ac6dba38f3652969f6eb946f48689b462c44250`. Relationship-response semantic trajectories приняты, increment закрыт.
 
 ## 4. Уже покрытые соседними tests сценарии
 
@@ -166,9 +166,9 @@ load state version N
 
 ### 5.2. Full numeric snapshots
 
-**Статус: pending verified test execution.**
+**Статус: ready for implementation after verified CI.**
 
-После подтверждённого запуска test suite создаётся versioned fixture с выбранными полями:
+Полный test suite и CI подтверждены на head `7ac6dba38f3652969f6eb946f48689b462c44250`. Следующий increment создаёт versioned fixture с выбранными полями:
 
 - state version;
 - emotion vector;
