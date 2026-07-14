@@ -166,20 +166,35 @@ load state version N
 
 ### 5.2. Full numeric snapshots
 
-**Статус: ready for implementation after verified CI.**
+**Статус: implemented, ожидает подтверждения полного CI.**
 
-Полный test suite и CI подтверждены на head `7ac6dba38f3652969f6eb946f48689b462c44250`. Следующий increment создаёт versioned fixture с выбранными полями:
+Первый versioned fixture добавлен для сценария:
 
-- state version;
-- emotion vector;
+```text
+baseline at 2026-07-13T18:00:00Z
+-> user_warmth at the same timestamp
+```
+
+Файлы:
+
+- `internal/emotion/affective_numeric_snapshot_test.go`;
+- `internal/emotion/testdata/affective_numeric_v1_warmth.json`.
+
+Snapshot schema: `sonata-affective-numeric-snapshot-v1`.
+
+Fixture фиксирует:
+
+- `profile_version` и state version;
+- полный emotion vector после direct effects и cross-emotion interactions;
 - physiology;
 - relationship;
-- drive satisfaction and urgency;
-- active complex states;
-- evidence accumulators;
-- transition metadata, включая `RelationshipRule`.
+- drive level, satisfaction и urgency в каноническом порядке;
+- active complex states и evidence accumulators как стабильные ordered arrays;
+- transition metadata, включая `RelationshipRule` и stimulus definition IDs.
 
-Snapshot должен использовать явную float tolerance или стабильное decimal normalization. Сырые значения Go `%#v` не являются переносимым golden format.
+Числа нормализуются до девяти знаков после запятой. Timestamps записываются в UTC RFC3339Nano. Пустые complex-state и evidence slices сохраняются как `[]`, а не `null`, поэтому неожиданное появление runtime state также считается snapshot drift.
+
+Изменение fixture допустимо только при осознанном изменении контракта или version bump профиля. До подтверждения CI этот пункт не закрывается в `CHECKLIST.md`.
 
 ## 6. Acceptance gate
 
