@@ -1,3 +1,22 @@
+-- name: LockUserManifestScope :exec
+SELECT pg_advisory_xact_lock(
+    hashtextextended(
+        sqlc.arg(owner_id) || E'\x1f' || sqlc.arg(scope) || E'\x1f' || sqlc.arg(scope_id),
+        0
+    )
+);
+
+-- name: NewManifestID :one
+SELECT gen_random_uuid()::text AS manifest_id;
+
+-- name: GetUserManifestForUpdate :one
+SELECT owner_id, scope, scope_id, manifest_id, version, status, content, content_hash, created_at, updated_at
+FROM sonata.user_manifests
+WHERE owner_id = sqlc.arg(owner_id)
+  AND scope = sqlc.arg(scope)
+  AND scope_id = sqlc.arg(scope_id)
+FOR UPDATE;
+
 -- name: InsertManifestVersion :one
 INSERT INTO sonata.manifest_versions (
     manifest_id,
