@@ -2,16 +2,25 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
+	"github.com/Lotargo/Sonata/internal/application"
 	"github.com/Lotargo/Sonata/internal/config"
+	"github.com/Lotargo/Sonata/internal/database"
+	"github.com/Lotargo/Sonata/internal/emotion"
 	"github.com/Lotargo/Sonata/internal/httpapi"
+	"github.com/Lotargo/Sonata/internal/protected"
+	"github.com/Lotargo/Sonata/internal/provider"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"go.yaml.in/yaml/v3"
 )
 
@@ -71,11 +80,152 @@ func runAPI(ctx context.Context, args []string, stderr io.Writer) int {
 	}
 
 	logger := newLogger(stderr, cfg.Observability.Logging.Level)
+
+	// 1. Resolve DB Connection String & Construct pgxpool
+	dbConnStr, ok := cfg.Secret(cfg.Storage.Database.URLRef)
+	if !ok || dbConnStr.Empty() {
+		logger.Error("database connection string is unresolved")
+		return 1
+	}
+	pool, err := pgxpool.New(ctx, dbConnStr.Reveal())
+	if err != nil {
+		logger.Error("connect to database pool failed", "error", err)
+		return 1
+	}
+	defer pool.Close()
+
+	// 2. Initialize database repositories
+	maxManifestBytes := int(cfg.Limits.ManifestBytes)
+	if maxManifestBytes <= 0 {
+		maxManifestBytes = protected.DefaultMaxUserManifestBytes
+	}
+
+	runRepo, err := database.NewRunRepository(pool)
+	if err != nil {
+		logger.Error("create run repository failed", "error", err)
+		return 1
+	}
+	manifestRepo, err := database.NewManifestRepository(pool, maxManifestBytes)
+	if err != nil {
+		logger.Error("create manifest repository failed", "error", err)
+		return 1
+	}
+	instructionRepo, err := database.NewInstructionRepository(pool)
+	if err != nil {
+		logger.Error("create instruction repository failed", "error", err)
+		return 1
+	}
+	providerUsageRepo, err := database.NewProviderUsageRepository(pool)
+	if err != nil {
+		logger.Error("create provider usage repository failed", "error", err)
+		return 1
+	}
+	affectiveStore, err := database.NewPostgresAffectiveStateStore(pool)
+	if err != nil {
+		logger.Error("create affective state store failed", "error", err)
+		return 1
+	}
+
+	// 3. Load protected bundle & sync instruction versions
+	bundle, err := protected.Load(os.DirFS("protected"), "registry.json")
+	if err != nil {
+		logger.Error("load protected bundle failed", "error", err)
+		return 1
+	}
+	for id, inst := range bundle.Instructions {
+		metaBytes, _ := json.Marshal(inst)
+		_, err := instructionRepo.Upsert(ctx, database.UpsertInstructionVersionInput{
+			InstructionID: id,
+			Version:       int32(inst.Version),
+			ContentHash:   inst.Hash,
+			Metadata:      metaBytes,
+			CreatedAt:     time.Now(),
+		})
+		if err != nil {
+			logger.Error("sync instruction version failed", "instruction_id", id, "error", err)
+			return 1
+		}
+	}
+	logger.Info("synchronized protected instructions to database")
+
+	// 4. Construct PromptCompiler & ManifestResolver
+	compiler, err := protected.NewPromptCompiler(bundle)
+	if err != nil {
+		logger.Error("create prompt compiler failed", "error", err)
+		return 1
+	}
+	resolver, err := protected.NewManifestResolver(bundle, maxManifestBytes)
+	if err != nil {
+		logger.Error("create manifest resolver failed", "error", err)
+		return 1
+	}
+
+	// 5. Construct Provider and Model Router
+	provCfg := cfg.Providers.OpenCodeZen
+	provCred, ok := cfg.Secret(provCfg.APIKeyRef)
+	if !ok || provCred.Empty() {
+		logger.Error("open_code_zen credential unresolved")
+		return 1
+	}
+	prov, err := provider.NewOpenCodeZenProviderFromConfig(provCfg, provCred, http.DefaultClient, cfg.Models.Allowlist)
+	if err != nil {
+		logger.Error("create open_code_zen provider failed", "error", err)
+		return 1
+	}
+	router, err := provider.NewModelRouter(prov, cfg.Models.Roles, cfg.Models.Allowlist, provider.RouterOptions{})
+	if err != nil {
+		logger.Error("create model router failed", "error", err)
+		return 1
+	}
+
+	// 6. Build Runner Adapter
+	runners, err := application.NewRunnerAdapter(router, compiler, bundle, providerUsageRepo)
+	if err != nil {
+		logger.Error("create runners adapter failed", "error", err)
+		return 1
+	}
+
+	// 7. Initialize CognitiveChatServiceImpl
+	cognitiveChat, err := application.NewCognitiveChatServiceImpl(
+		runners,
+		runRepo,
+		manifestRepo,
+		bundle,
+		resolver,
+	)
+	if err != nil {
+		logger.Error("create cognitive chat service failed", "error", err)
+		return 1
+	}
+
+	// 8. Initialize AffectiveRuntime & AffectiveChatService
+	affectiveProfile, err := emotion.NewAffectiveRuntimeProfileFromConfig(cfg.Emotion)
+	if err != nil {
+		logger.Error("build affective runtime profile failed", "error", err)
+		return 1
+	}
+	affectiveRuntime, err := emotion.NewAffectiveRuntime("sonata", affectiveProfile, affectiveStore, time.Now)
+	if err != nil {
+		logger.Error("create affective runtime failed", "error", err)
+		return 1
+	}
+	affectiveChat, err := application.NewAffectiveChatService(affectiveRuntime, cognitiveChat)
+	if err != nil {
+		logger.Error("create affective chat service failed", "error", err)
+		return 1
+	}
+
+	ready := func(ctx context.Context) error {
+		return pool.Ping(ctx)
+	}
+
 	handler := httpapi.NewHandler(httpapi.Options{
 		Logger:             logger,
 		RequestTimeout:     cfg.Cognition.PhaseTimeout.Value() * 6,
 		MaxRequestBytes:    cfg.Limits.RequestBytes,
+		Ready:              ready,
 		InternalCredential: internalCredential.Reveal(),
+		Chat:               affectiveChat,
 	})
 	server := httpapi.NewServer(cfg.App.HTTPAddress, handler, cfg.App.ShutdownTimeout.Value(), logger)
 	logger.Info("starting Sonata API", "address", cfg.App.HTTPAddress, "profile", cfg.Profile())

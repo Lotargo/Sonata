@@ -9,11 +9,14 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Lotargo/Sonata/internal/cognition"
+	"github.com/Lotargo/Sonata/internal/database"
 	"github.com/Lotargo/Sonata/internal/protected"
 	"github.com/Lotargo/Sonata/internal/provider"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type contextKey string
@@ -23,6 +26,11 @@ const manifestContentKey contextKey = "manifest_content"
 // ContextWithUserManifests stores user manifest ID to content mapping in context.
 func ContextWithUserManifests(ctx context.Context, manifests map[string]string) context.Context {
 	return context.WithValue(ctx, manifestContentKey, manifests)
+}
+
+func UserManifestsFromContext(ctx context.Context) (map[string]string, bool) {
+	manifests, ok := ctx.Value(manifestContentKey).(map[string]string)
+	return manifests, ok
 }
 
 // UserManifestFromContext retrieves user manifest content by its ID.
@@ -35,16 +43,52 @@ func UserManifestFromContext(ctx context.Context, id string) (string, bool) {
 	return content, ok
 }
 
+type runContextKey struct{}
+type RunContextInfo struct {
+	OwnerID        string
+	CognitiveRunID pgtype.UUID
+	RoleRunIDs     map[cognition.RuntimeRole]pgtype.UUID
+}
+
+func ContextWithRunInfo(ctx context.Context, info RunContextInfo) context.Context {
+	return context.WithValue(ctx, runContextKey{}, info)
+}
+
+func RunInfoFromContext(ctx context.Context) (RunContextInfo, bool) {
+	info, ok := ctx.Value(runContextKey{}).(RunContextInfo)
+	return info, ok
+}
+
+type usageCollectorKey struct{}
+type UsageCollector struct {
+	mu    sync.Mutex
+	Usage provider.Usage
+	Model string
+}
+
+func (c *UsageCollector) Record(model string, u provider.Usage) {
+	c.mu.Lock()
+	c.Model = model
+	c.Usage = u
+	c.mu.Unlock()
+}
+
 // RunnerAdapter orchestrates system/user prompt compilation, calling the model provider via the router,
 // stripping markdown blocks, and decoding the structured responses strictly.
 type RunnerAdapter struct {
-	router   *provider.ModelRouter
-	compiler *protected.PromptCompiler
-	bundle   *protected.Bundle
+	router    *provider.ModelRouter
+	compiler  *protected.PromptCompiler
+	bundle    *protected.Bundle
+	usageRepo *database.ProviderUsageRepository
 }
 
 // NewRunnerAdapter creates a new RunnerAdapter.
-func NewRunnerAdapter(router *provider.ModelRouter, compiler *protected.PromptCompiler, bundle *protected.Bundle) (*RunnerAdapter, error) {
+func NewRunnerAdapter(
+	router *provider.ModelRouter,
+	compiler *protected.PromptCompiler,
+	bundle *protected.Bundle,
+	usageRepo *database.ProviderUsageRepository,
+) (*RunnerAdapter, error) {
 	if router == nil {
 		return nil, errors.New("model router is required")
 	}
@@ -55,10 +99,30 @@ func NewRunnerAdapter(router *provider.ModelRouter, compiler *protected.PromptCo
 		return nil, errors.New("protected bundle is required")
 	}
 	return &RunnerAdapter{
-		router:   router,
-		compiler: compiler,
-		bundle:   bundle,
+		router:    router,
+		compiler:  compiler,
+		bundle:    bundle,
+		usageRepo: usageRepo,
 	}, nil
+}
+
+func (r *RunnerAdapter) recordUsage(ctx context.Context, role cognition.RuntimeRole, model string, usage provider.Usage) {
+	if r.usageRepo == nil {
+		return
+	}
+	if info, ok := RunInfoFromContext(ctx); ok {
+		_, _ = r.usageRepo.Insert(ctx, database.InsertProviderUsageInput{
+			OwnerID:        info.OwnerID,
+			CognitiveRunID: info.CognitiveRunID,
+			RoleRunID:      info.RoleRunIDs[role],
+			Provider:       "open_code_zen",
+			ModelID:        model,
+			InputTokens:    int64(usage.InputTokens),
+			OutputTokens:   int64(usage.OutputTokens),
+			CachedTokens:   int64(usage.CachedTokens),
+			CreatedAt:      time.Now(),
+		})
+	}
 }
 
 // RunRouter implements cognition.RouterRunner.
@@ -119,6 +183,10 @@ func (r *RunnerAdapter) RunRouter(ctx context.Context, input cognition.RouterInp
 	latency := time.Since(startTime)
 	if err != nil {
 		return cognition.RouterRunResult{}, err
+	}
+
+	if collector, ok := ctx.Value(usageCollectorKey{}).(*UsageCollector); ok {
+		collector.Record(res.Model, res.Usage)
 	}
 
 	trimmed := StripMarkdownJSON(res.Content)
@@ -205,6 +273,7 @@ func (r *RunnerAdapter) RunRaw(ctx context.Context, input cognition.RawInput) (c
 	if err != nil {
 		return cognition.PrismReport{}, err
 	}
+	r.recordUsage(ctx, cognition.RuntimeRole(string(input.Prism)+"_raw"), res.Model, res.Usage)
 
 	trimmed := StripMarkdownJSON(res.Content)
 	content, confidence, err := DecodePrismReport([]byte(trimmed))
@@ -274,6 +343,7 @@ func (r *RunnerAdapter) RunCritical(ctx context.Context, input cognition.Critica
 	if err != nil {
 		return cognition.CriticalReport{}, err
 	}
+	r.recordUsage(ctx, cognition.RuntimeRole(string(input.Prism)+"_critical"), res.Model, res.Usage)
 
 	trimmed := StripMarkdownJSON(res.Content)
 	content, weakAssumptions, unprovenConclusions, confidence, err := DecodeCriticalReport([]byte(trimmed))
@@ -345,6 +415,7 @@ func (r *RunnerAdapter) RunSummary(ctx context.Context, input cognition.SummaryI
 	if err != nil {
 		return cognition.PrismSummary{}, err
 	}
+	r.recordUsage(ctx, cognition.RuntimeRole(string(input.Prism)+"_summary"), res.Model, res.Usage)
 
 	trimmed := StripMarkdownJSON(res.Content)
 	initialPos, mainCritique, revisedPos, rejectedAssumptions, openQuestions, confidence, err := DecodePrismSummary([]byte(trimmed))
@@ -463,6 +534,7 @@ func (r *RunnerAdapter) RunSynthesisTooling(ctx context.Context, input cognition
 	if err != nil {
 		return cognition.SynthesisToolingOutput{}, err
 	}
+	r.recordUsage(ctx, cognition.RoleSynthesisTooling, res.Model, res.Usage)
 
 	trimmed := StripMarkdownJSON(res.Content)
 	preliminaryDecision, toolCalls, err := DecodeSynthesisToolingOutput([]byte(trimmed))
@@ -558,6 +630,7 @@ func (r *RunnerAdapter) RunSynthesisFinal(ctx context.Context, input cognition.S
 	if err != nil {
 		return cognition.SynthesisFinalOutput{}, err
 	}
+	r.recordUsage(ctx, cognition.RoleSynthesisFinal, res.Model, res.Usage)
 
 	return cognition.SynthesisFinalOutput{
 		Content: res.Content,

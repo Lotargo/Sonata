@@ -32,6 +32,13 @@ func NewRunRepository(pool *pgxpool.Pool) (*RunRepository, error) {
 	return &RunRepository{pool: pool, queries: dbgen.New(pool)}, nil
 }
 
+func (repository *RunRepository) Pool() *pgxpool.Pool {
+	if repository == nil {
+		return nil
+	}
+	return repository.pool
+}
+
 type RoleRunStart struct {
 	Role        cognition.RuntimeRole
 	ModelID     string

@@ -85,7 +85,7 @@ func setupTestRunnerAdapter(t *testing.T, upstream *mockModelProvider) *RunnerAd
 		t.Fatalf("provider.NewModelRouter() failed: %v", err)
 	}
 
-	adapter, err := NewRunnerAdapter(router, compiler, bundle)
+	adapter, err := NewRunnerAdapter(router, compiler, bundle, nil)
 	if err != nil {
 		t.Fatalf("NewRunnerAdapter() failed: %v", err)
 	}
