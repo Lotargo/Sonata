@@ -13,6 +13,7 @@ const (
 	sonataServiceName    = "sonata-api"
 	openWebUIServiceName = "sonata-web"
 	openWebUIImage       = "ghcr.io/open-webui/open-webui:v0.10.2"
+	gooseVersion         = "v3.27.2"
 )
 
 type blueprint struct {
@@ -32,6 +33,7 @@ type service struct {
 	Region                  string   `yaml:"region"`
 	Plan                    string   `yaml:"plan"`
 	BuildCommand            string   `yaml:"buildCommand"`
+	PreDeployCommand        string   `yaml:"preDeployCommand"`
 	StartCommand            string   `yaml:"startCommand"`
 	DockerCommand           string   `yaml:"dockerCommand"`
 	HealthCheckPath         string   `yaml:"healthCheckPath"`
@@ -83,6 +85,25 @@ func TestRenderBlueprintPreservesDeploymentBoundary(t *testing.T) {
 	}
 	if sonata.HealthCheckPath != "/internal/health/ready" {
 		t.Fatalf("unexpected Sonata health check path %q", sonata.HealthCheckPath)
+	}
+	if !strings.Contains(sonata.BuildCommand, "sonata ./cmd/sonata") ||
+		!strings.Contains(sonata.BuildCommand, "GOBIN=\"$PWD/bin\"") ||
+		!strings.Contains(sonata.BuildCommand, "goose@"+gooseVersion) {
+		t.Fatalf("Sonata build command must produce the API and pinned goose binaries: %q", sonata.BuildCommand)
+	}
+	for _, required := range []string{
+		"./bin/goose",
+		"-dir internal/database/migrations",
+		"postgres",
+		"$DATABASE_DIRECT_URL",
+		"up",
+	} {
+		if !strings.Contains(sonata.PreDeployCommand, required) {
+			t.Fatalf("Sonata pre-deploy command is missing %q: %q", required, sonata.PreDeployCommand)
+		}
+	}
+	if strings.Contains(sonata.PreDeployCommand, `"$DATABASE_URL"`) {
+		t.Fatalf("migrations must not use the pooled runtime URL: %q", sonata.PreDeployCommand)
 	}
 	if !strings.Contains(sonata.StartCommand, "sonata api") || !strings.Contains(sonata.StartCommand, "--profile production") {
 		t.Fatalf("unexpected Sonata start command %q", sonata.StartCommand)
