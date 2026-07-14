@@ -37,10 +37,10 @@ To ensure high quality and prevent errors, we divide the work into four distinct
 
 ---
 
-## Phase 4: Docker Compilation & Smoke Testing
+## Phase 4: Docker Compilation & Smoke Testing (COMPLETED)
 *Goal: Containerize the monolith, verify schema migrations and run a smoke test.*
 
 ### Checklists
-- [ ] Verify Dockerfile and compose setup.
-- [ ] Run migrations and API server inside Docker.
-- [ ] Trigger a request via curl to confirm model registration and pipeline completion.
+- [x] Verify Dockerfile and compose setup.
+- [x] Run migrations and API server inside Docker.
+- [x] Trigger a request via curl to confirm model registration and pipeline completion.

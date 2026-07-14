@@ -1,0 +1,56 @@
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sonata-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: sonata
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d sonata"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  migrations:
+    image: sonata-api:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sonata-migrations
+    depends_on:
+      postgres:
+        condition: service_healthy
+    entrypoint: ["goose"]
+    command: ["-dir", "internal/database/migrations", "postgres", "postgres://postgres:postgres@postgres:5432/sonata?sslmode=disable", "up"]
+
+  api:
+    image: sonata-api:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sonata-api
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/sonata?sslmode=disable
+      - DATABASE_DIRECT_URL=postgres://postgres:postgres@postgres:5432/sonata?sslmode=disable
+      - OPENCODE_ZEN_API_KEY=mock-key
+      - LANGSEARCH_API_KEY=mock-key
+      - QDRANT_URL=http://mock-qdrant:6333
+      - QDRANT_API_KEY=mock-key
+      - OPENWEBUI_INTERNAL_SECRET=mock-secret
+      - GRAFANA_OTLP_ENDPOINT=http://mock-grafana:4317
+      - R2_ENDPOINT=http://mock-r2
+      - R2_ACCESS_KEY_ID=mock-id
+      - R2_SECRET_ACCESS_KEY=mock-secret
+      - SONATA_PROFILE=production
+    command: ["api", "--config-root", "./config", "--profile", "production"]
