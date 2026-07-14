@@ -20,6 +20,7 @@
 12. [`modules/AFFECTIVE_HTTP_INTEGRATION.md`](./modules/AFFECTIVE_HTTP_INTEGRATION.md) — owner-scoped affective transition внутри trusted HTTP chat flow и graceful degradation.
 13. [`decisions/OPENCODE_ZEN_PROVIDER.md`](./decisions/OPENCODE_ZEN_PROVIDER.md) — основной provider, общий master key и будущий BYOK.
 14. [`decisions/CONFIG_AND_SECRETS.md`](./decisions/CONFIG_AND_SECRETS.md) — единая загрузка конфигурации и секретов.
+15. [`decisions/NEON_CANONICAL_STORAGE.md`](./decisions/NEON_CANONICAL_STORAGE.md) — schema `sonata`, pooled/direct connections, owner constraints, migrations и affective CAS repository.
 
 ## Правила для агентов
 
@@ -56,5 +57,6 @@ docs/mini-mvp/
 │   └── AFFECTIVE_HTTP_INTEGRATION.md
 └── decisions/
     ├── OPENCODE_ZEN_PROVIDER.md
-    └── CONFIG_AND_SECRETS.md
+    ├── CONFIG_AND_SECRETS.md
+    └── NEON_CANONICAL_STORAGE.md
 ```
